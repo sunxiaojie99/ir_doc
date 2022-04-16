@@ -103,10 +103,10 @@ def convert_ids_to_tokens(inv_vocab, ids):
 
 def whitespace_tokenize(text):
     """Runs basic whitespace cleaning and splitting on a peice of text."""
-    text = text.strip()
+    text = text.strip() # 会默认把首位前后多余的空格删除
     if not text:
         return []
-    tokens = text.split()
+    tokens = text.split() # 根据空格切分,有连续的空格或其他空字符时，都会被视为一个分隔符对字符串进行分割
     return tokens
 
 
@@ -179,15 +179,15 @@ class BasicTokenizer(object):
         # and generally don't have any Chinese data in them (there are Chinese
         # characters in the vocabulary because Wikipedia does have some Chinese
         # words in the English Wikipedia.).
-        text = self._tokenize_chinese_chars(text)
+        text = self._tokenize_chinese_chars(text) # 中文字符前后加空格
 
-        orig_tokens = whitespace_tokenize(text)
+        orig_tokens = whitespace_tokenize(text) # 去除多余空格，前后切分
         split_tokens = []
         for token in orig_tokens:
             if self.do_lower_case:
                 token = token.lower()
                 token = self._run_strip_accents(token)
-            split_tokens.extend(self._run_split_on_punc(token))
+            split_tokens.extend(self._run_split_on_punc(token)) # 更近一步根据标点符号拆分
 
         output_tokens = whitespace_tokenize(" ".join(split_tokens))
         return output_tokens
@@ -211,17 +211,17 @@ class BasicTokenizer(object):
         output = []
         while i < len(chars):
             char = chars[i]
-            if _is_punctuation(char):
+            if _is_punctuation(char): # 是标点符号就单独把这个符号加到list去，并提醒下一个字符是新单词了
                 output.append([char])
                 start_new_word = True
             else:
-                if start_new_word:
+                if start_new_word: # 是新单词就准备好一个list
                     output.append([])
                 start_new_word = False
-                output[-1].append(char)
+                output[-1].append(char) # 这个单词的字符加到最后一个单词的末尾
             i += 1
 
-        return ["".join(x) for x in output]
+        return ["".join(x) for x in output] # 把每一个单词合并
 
     def _tokenize_chinese_chars(self, text):
         """Adds whitespace around any CJK character."""

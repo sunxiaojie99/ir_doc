@@ -34,14 +34,14 @@ for q in q_dic:
     for cand in cands:
         rank += 1
         output.append([q, cand[1], rank])
-        if rank > 49:
+        if rank > 49: # 保留score前50的passage
             break
 
 with open(outputf, 'w') as f:
-    res = dict()
+    res = dict()  # 写出一个字典
     for line in output:
         qid, pid, rank = line
         if qid not in res:
             res[qid] = [0] * 50
-        res[qid][int(rank) - 1] = pid
+        res[qid][int(rank) - 1] = pid # 每个qid的50个pid list
     json.dump(res, f, ensure_ascii=False, indent='\t')

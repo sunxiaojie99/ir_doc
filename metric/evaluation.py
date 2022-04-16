@@ -13,14 +13,13 @@ from collections import Counter
 MaxMRRRank = 10
 
 def load_reference_from_stream(f):
+    # 读取标准参考文件
     qids_to_relevant_passageids = {}
     for line in f:
         try:
             sample = json.loads(line.strip())
             qid = sample["question_id"]
-            if qid in qids_to_relevant_passageids:
-                pass
-            else:
+            if qid not in qids_to_relevant_passageids:
                 qids_to_relevant_passageids[qid] = []
             for answer_paragraph in sample["answer_paragraphs"]:
                 qids_to_relevant_passageids[qid].append(answer_paragraph["paragraph_id"])
@@ -94,7 +93,8 @@ def quality_checks_qids(qids_to_relevant_passageids, qids_to_ranked_candidate_pa
     return allowed, message
 
 def compute_metrics(qids_to_relevant_passageids, qids_to_ranked_candidate_passages):
-    """Compute MRR metric
+    """Compute MRR metric 计算mrr分数
+    把标准答案在被评价系统给出结果中的排序取倒数作为它的准确度，再对所有的问题取平均
     Args:
     p_qids_to_relevant_passageids (dict): dictionary of query-passage mapping
         Dict as read in with load_reference or load_reference_from_stream
@@ -108,32 +108,32 @@ def compute_metrics(qids_to_relevant_passageids, qids_to_ranked_candidate_passag
     ranking = []
     recall_q_top1 = set()
     recall_q_top50 = set()
-    recall_q_all = set()
+    recall_q_all = set() # 有有效召回的query的数量
 
-    for qid in qids_to_ranked_candidate_passages:
-        if qid in qids_to_relevant_passageids:
+    for qid in qids_to_ranked_candidate_passages: # 枚举所有query
+        if qid in qids_to_relevant_passageids: # qid存在
             ranking.append(0)
-            target_pid = qids_to_relevant_passageids[qid]
-            candidate_pid = qids_to_ranked_candidate_passages[qid]
-            for i in range(0, MaxMRRRank):
-                if candidate_pid[i] in target_pid:
-                    MRR += 1.0 / (i + 1)
+            target_pid = qids_to_relevant_passageids[qid] # 标准的pid list
+            candidate_pid = qids_to_ranked_candidate_passages[qid] # 模型的pid list
+            for i in range(0, MaxMRRRank): # mmr@10
+                if candidate_pid[i] in target_pid: # 如果在标准答案中
+                    MRR += 1.0 / (i + 1) # 在参考答案中的位置倒数
                     ranking.pop()
-                    ranking.append(i + 1)
+                    ranking.append(i + 1) # 只记录在模型预测的pid中排在最前面的在标准答案中的位置
                     break
-            for i, pid in enumerate(candidate_pid):
-                if pid in target_pid:
+            for i, pid in enumerate(candidate_pid): # 枚举模型pid list
+                if pid in target_pid: # 如果在标准答案中
                     recall_q_all.add(qid)
                     if i < 50:
                         recall_q_top50.add(qid)
                     if i == 0:
                         recall_q_top1.add(qid)
-                    break
+                    break # 只记录一个pid
     if len(ranking) == 0:
         raise IOError("No matching QIDs found. Are you sure you are scoring the evaluation set?")
 
-    MRR = MRR / len(qids_to_relevant_passageids)
-    recall_top1 = len(recall_q_top1) * 1.0 / len(qids_to_relevant_passageids)
+    MRR = MRR / len(qids_to_relevant_passageids)  # 除以query的个数
+    recall_top1 = len(recall_q_top1) * 1.0 / len(qids_to_relevant_passageids) # 在前1召回正确的qid num/所有qid num
     recall_top50 = len(recall_q_top50) * 1.0 / len(qids_to_relevant_passageids)
     recall_all = len(recall_q_all) * 1.0 / len(qids_to_relevant_passageids)
     all_scores['MRR@10'] = MRR
@@ -145,9 +145,10 @@ def compute_metrics(qids_to_relevant_passageids, qids_to_ranked_candidate_passag
 
 
 def compute_metrics_from_files(path_to_reference, path_to_candidate, perform_checks=True):
-    qids_to_relevant_passageids = load_reference(path_to_reference)
+    qids_to_relevant_passageids = load_reference(path_to_reference)  # {qid1:[pid1,pid2,...], qid2:[..]...}
     qids_to_ranked_candidate_passages = load_candidate(path_to_candidate)
     if perform_checks:
+        # 检查每个qid中的pids是否有重复的文章
         allowed, message = quality_checks_qids(qids_to_relevant_passageids, qids_to_ranked_candidate_passages)
         if message != '': print(message)
 
@@ -160,8 +161,8 @@ def main():
     """
 
     if len(sys.argv) == 3:
-        path_to_reference = sys.argv[1]
-        path_to_candidate = sys.argv[2]
+        path_to_reference = sys.argv[1] # 标准答案
+        path_to_candidate = sys.argv[2] # 模型预测答案
 
     else:
         print('Usage: result_eval.py <reference ranking> <candidate ranking>')
