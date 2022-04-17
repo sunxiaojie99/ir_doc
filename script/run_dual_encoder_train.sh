@@ -38,7 +38,7 @@ python -m paddle.distributed.launch \
                    --is_distributed false \
                    --use_recompute true \
                    --use_mix_precision true \
-                   --use_cross_batch true \
+                   --use_cross_batch false \
                    --use_lamb false \
                    --use_cuda true \
                    --verbose true \

@@ -54,6 +54,13 @@ TRAIN_SET="dureader-retrieval-baseline-dataset/train/dual.train.demo.tsv"
 MODEL_PATH="pretrained-models/ernie_base_1.0_twin_CN/params"
 sh script/run_dual_encoder_train.sh $TRAIN_SET $MODEL_PATH 10 4 
 ```
+我使用的版本
+```
+export CUDA_VISIBLE_DEVICES=0,1
+TRAIN_SET="dureader-retrieval-baseline-dataset/train/dual.train.tsv"
+MODEL_PATH="pretrained-models/ernie_base_1.0_twin_CN/params"
+sh script/run_dual_encoder_train.sh $TRAIN_SET $MODEL_PATH 10 2
+```
 This will train on the demo data for 10 epochs with 4 gpu cars. The training log will be saved into `log/`. At the end of training, model parameters will be saved into `output/`. To start the training on the full dataset, please set `TRAIN_SET=dureader-retrieval-baseline-dataset/train/dual.train.tsv`.
 
 **Note**: We strongly recommend to use more gpus for training. The performance increases with the effective batch size, which is related to the number of gpus. 如果使用单gpu训练， please turn off the option `use_cross_batch` in `script/run_dual_encoder_train.sh`. 

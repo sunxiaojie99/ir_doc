@@ -116,14 +116,14 @@ class FullTokenizer(object):
     def __init__(self, vocab_file, do_lower_case=True):
         self.vocab = load_vocab(vocab_file)
         self.inv_vocab = {v: k for k, v in self.vocab.items()}
-        self.basic_tokenizer = BasicTokenizer(do_lower_case=do_lower_case)
+        self.basic_tokenizer = BasicTokenizer(do_lower_case=do_lower_case) # 基本的按中文、标点等拆分，得到一个list
         self.wordpiece_tokenizer = WordpieceTokenizer(vocab=self.vocab)
 
     def tokenize(self, text):
         split_tokens = []
-        for token in self.basic_tokenizer.tokenize(text):
-            for sub_token in self.wordpiece_tokenizer.tokenize(token):
-                split_tokens.append(sub_token)
+        for token in self.basic_tokenizer.tokenize(text):  # 对于basic_tokenizer得到的每一个token，都再执行wordpiece_tokenizer
+            for sub_token in self.wordpiece_tokenizer.tokenize(token):  # 根据最长匹配算法，把token根据词典中的词拆为word pieces
+                split_tokens.append(sub_token)  # 主要针对英文
 
         return split_tokens
 
@@ -144,7 +144,7 @@ class CharTokenizer(object):
 
     def tokenize(self, text):
         split_tokens = []
-        for token in text.lower().split(" "):
+        for token in text.lower().split(" "):  # 不预先使用basic_tokenizer
             for sub_token in self.wordpiece_tokenizer.tokenize(token):
                 split_tokens.append(sub_token)
 
@@ -169,7 +169,7 @@ class BasicTokenizer(object):
         self.do_lower_case = do_lower_case
 
     def tokenize(self, text):
-        """Tokenizes a piece of text."""
+        """Tokenizes a piece of text. 根据中文字符拆分、小写、标点符号等进行拆分"""
         text = convert_to_unicode(text)
         text = self._clean_text(text)
 
@@ -281,7 +281,7 @@ class WordpieceTokenizer(object):
         self.max_input_chars_per_word = max_input_chars_per_word
 
     def tokenize(self, text):
-        """Tokenizes a piece of text into its word pieces.
+        """Tokenizes a piece of text into its word pieces.主要针对英文
 
         This uses a greedy longest-match-first algorithm to perform tokenization
         using the given vocabulary.
@@ -301,9 +301,9 @@ class WordpieceTokenizer(object):
         text = convert_to_unicode(text)
 
         output_tokens = []
-        for token in whitespace_tokenize(text):
+        for token in whitespace_tokenize(text): # 允许输入是以空格分隔的字符串，反正先根据空格拆分一下
             chars = list(token)
-            if len(chars) > self.max_input_chars_per_word:
+            if len(chars) > self.max_input_chars_per_word:  # 对于长度长于100个字符的词直接认为是unk
                 output_tokens.append(self.unk_token)
                 continue
 
@@ -314,20 +314,20 @@ class WordpieceTokenizer(object):
                 end = len(chars)
                 cur_substr = None
                 while start < end:
-                    substr = "".join(chars[start:end])
-                    if start > 0:
+                    substr = "".join(chars[start:end])  # 先以最长的开始
+                    if start > 0:  # 不是一个token的开头，就要加上##
                         substr = "##" + substr
-                    if substr in self.vocab:
+                    if substr in self.vocab:  # 在词典中找到了
                         cur_substr = substr
                         break
-                    end -= 1
-                if cur_substr is None:
+                    end -= 1  # 找不到就把末尾的丢掉一个字符
+                if cur_substr is None:  # 第一个字符都找不到，认为是一个坏单词
                     is_bad = True
                     break
-                sub_tokens.append(cur_substr)
-                start = end
+                sub_tokens.append(cur_substr)  # 把从start-到end这部分加入
+                start = end  # 更新start指针
 
-            if is_bad:
+            if is_bad:  # 未知坏单词，加入unk
                 output_tokens.append(self.unk_token)
             else:
                 output_tokens.extend(sub_tokens)
