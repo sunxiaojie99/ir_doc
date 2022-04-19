@@ -41,6 +41,8 @@ def search(index, emb_file, qid_list, outfile, top_k):
         for batch_vec in read_embed(emb_file):
             q_emb_matrix = np.array(batch_vec)
             res_dist, res_p_id = index.search(q_emb_matrix.astype('float32'), top_k)
+            # res_dist: 维度是 nq*top_k,代表距离每个query最近的top_k个数据的距离
+            # res_p_id: 维度是 nq*top_k,代表距离每个query最近的k个数据的id
             for i in range(len(q_emb_matrix)):
                 qid = qid_list[q_idx]
                 for j in range(top_k):

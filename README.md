@@ -65,6 +65,7 @@ This will train on the demo data for 10 epochs with 4 gpu cars. The training log
 
 **Note**: We strongly recommend to use more gpus for training. The performance increases with the effective batch size, which is related to the number of gpus. 如果使用单gpu训练， please turn off the option `use_cross_batch` in `script/run_dual_encoder_train.sh`. 
 
+> [faiss 教程](https://zhuanlan.zhihu.com/p/320653340)
 
 #### Prediction 预测
 用微调过的参数在验证集上验证

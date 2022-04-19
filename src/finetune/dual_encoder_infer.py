@@ -124,10 +124,11 @@ def create_model(args,
     return pyreader, graph_vars
 
 def build_engine(para_emb_list, dim):
-    index = faiss.IndexFlatIP(dim)
+    index = faiss.IndexFlatIP(dim)  # 点乘，归一化的向量点乘即cosine相似度（越大越好）
     # add paragraph embedding
     p_emb_matrix = np.asarray(para_emb_list)
-    index.add(p_emb_matrix.astype('float32'))
+    index.add(p_emb_matrix.astype('float32'))  # add vectors to the index
+    # print(index.ntotal)
     #print ("insert done", file=sys.stderr)
     return index
 

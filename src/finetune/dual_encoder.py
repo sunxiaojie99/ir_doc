@@ -97,12 +97,13 @@ def create_model(args,
     #src_ids_p_pos = fluid.layers.Print(src_ids_p_pos, message='pos: ')
     #pos_cls_feats = fluid.layers.Print(pos_cls_feats, message='pos: ')
 
-    p_cls_feats = fluid.layers.concat([pos_cls_feats, neg_cls_feats], axis=0)
+    p_cls_feats = fluid.layers.concat([pos_cls_feats, neg_cls_feats], axis=0)  # 把正负样本的cls concat一起
 
-    if is_prediction:
-        p_cls_feats = fluid.layers.slice(p_cls_feats, axes=[0], starts=[0], ends=[batch_size])
+    if is_prediction:  # 预测
+        p_cls_feats = fluid.layers.slice(p_cls_feats, axes=[0], starts=[0], ends=[batch_size]) 
+        # https://github.com/PaddlePaddle/Paddle/blob/b5d9c31c70b1a1eab959302464f22aec5cc27812/python/paddle/fluid/layers/nn.py#L11194
         multi = fluid.layers.elementwise_mul(q_cls_feats, p_cls_feats)
-        probs = fluid.layers.reduce_sum(multi, dim=-1)
+        probs = fluid.layers.reduce_sum(multi, dim=-1)  # 求和
 
         graph_vars = {
             "probs": probs,
@@ -127,9 +128,9 @@ def create_model(args,
 
     probs = logits
 
-    all_labels = np.array(range(batch_size * worker_id * 2, batch_size * (worker_id * 2 + 1)), dtype='int64')
-    matrix_labels = fluid.layers.assign(all_labels)
-    matrix_labels = fluid.layers.unsqueeze(matrix_labels, axes=1)
+    all_labels = np.array(range(batch_size * worker_id * 2, batch_size * (worker_id * 2 + 1)), dtype='int64')  # 0,1,2..,bs-1
+    matrix_labels = fluid.layers.assign(all_labels)  # 输入Tensor或numpy数组拷贝至输出Tensor
+    matrix_labels = fluid.layers.unsqueeze(matrix_labels, axes=1)  # 插入1维
     matrix_labels.stop_gradient=True
 #    fluid.layers.Print(matrix_labels, message='matrix_labels')
 
