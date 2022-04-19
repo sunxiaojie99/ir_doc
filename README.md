@@ -1,3 +1,6 @@
+https://github.com/jingtaozhan/RepBERT-Index/blob/master/dataset.py
+[pytorch 矩阵乘法](https://zhuanlan.zhihu.com/p/100069938)
+[paddle/pytorch对照表](https://www.i4k.xyz/article/qq_32097577/112383360)
 # DuReader<sub>retrieval</sub> Dataset
 **Passage retrieval** requires systems to find relevant passages from a large passage collection, which is an important task in the fields of natural language processing and information retrieval. The traditional retrieval systems use term-based sparse representations (e.g. BM25) to match the query and the candidate passages. But such methods cannot handle term mismatch, i.e. semantically relevant but with few overlapped terms. Recent studies have shown that dense retrieval based on pre-trained language models can effectively deal with such problem via semantic dense representations of query and passages. The method has better performance in many applications, like question answering. 
 

@@ -8,7 +8,9 @@ train_set = os.path.join(here, '../dureader-retrieval-baseline-dataset/train/dua
 test_save=os.path.join(here, '../output/score')
 checkpoints_dir=os.path.join(here, '../output')
 pretrained_model_path = os.path.join(here, '../torch-pretrained-models/ernie-gram-zh') # https://huggingface.co/nghuyong/ernie-gram-zh
+vocab_path = os.path.join(here, '../torch-pretrained-models/ernie-gram-zh/vocab.txt')
 log_dir = os.path.join(here, '../log_dir')
+
 device = "cuda" if torch.cuda.is_available() else "cpu"
 lr=3e-5
 epoch = 5
@@ -25,6 +27,7 @@ parser.add_argument('--train_set', type=str, default=train_set)
 parser.add_argument("--test_save", type=str, default=test_save)
 parser.add_argument("--checkpoints_dir", type=str, default=checkpoints_dir)
 parser.add_argument("--pretrained_model_path", type=str, default=pretrained_model_path)
+parser.add_argument("--vocab_path", type=str, default=vocab_path)
 parser.add_argument('--log_dir', type=str, default=log_dir)
 parser.add_argument("--device", type=str, default=device)
 
