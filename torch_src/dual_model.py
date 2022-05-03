@@ -21,7 +21,9 @@ class Dual_Train_Model(nn.Module):
             self.pretrained_model_path, config=self.model_config)
         self.bert_model_para = BertModel.from_pretrained(
             self.pretrained_model_path, config=self.model_config)
-        for param in self.bert_model.parameters():
+        for param in self.bert_model_q.parameters():
+            param.requires_grad = True
+        for param in self.bert_model_para.parameters():
             param.requires_grad = True
 
     def forward(self, q_token_ids, q_token_type_ids, q_attention_mask,
@@ -49,6 +51,7 @@ class Dual_Train_Model(nn.Module):
         print('p_cls_feats shape:', p_cls_feats.shape)
 
         logits = torch.mm(q_cls_feats, p_cls_feats.T)  # [bs, 2bs]
+        import pdb;pdb.set_trace()
 
         return logits
 

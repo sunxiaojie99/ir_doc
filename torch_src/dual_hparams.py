@@ -7,8 +7,9 @@ here = os.path.dirname(os.path.abspath(__file__))
 train_set = os.path.join(here, '../dureader-retrieval-baseline-dataset/train/dual.train.tsv')
 test_save=os.path.join(here, '../output/score')
 checkpoints_dir=os.path.join(here, '../output')
-pretrained_model_path = os.path.join(here, '../torch-pretrained-models/ernie-gram-zh') # https://huggingface.co/nghuyong/ernie-gram-zh
-vocab_path = os.path.join(here, '../torch-pretrained-models/ernie-gram-zh/vocab.txt')
+checkpoint_file=os.path.join(checkpoints_dir, 'checkpoint.json')
+pretrained_model_path = os.path.join(here, '../torch_pretrained_models/chinese-bert-wwm') # https://huggingface.co/nghuyong/ernie-gram-zh
+vocab_path = os.path.join(here, '../torch_pretrained_models/chinese-bert-wwm/vocab.txt')
 log_dir = os.path.join(here, '../log_dir')
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -26,6 +27,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--train_set', type=str, default=train_set)
 parser.add_argument("--test_save", type=str, default=test_save)
 parser.add_argument("--checkpoints_dir", type=str, default=checkpoints_dir)
+parser.add_argument("--checkpoint_file", type=str, default=checkpoint_file)
 parser.add_argument("--pretrained_model_path", type=str, default=pretrained_model_path)
 parser.add_argument("--vocab_path", type=str, default=vocab_path)
 parser.add_argument('--log_dir', type=str, default=log_dir)
@@ -43,3 +45,5 @@ parser.add_argument("--random_seed", type=int, default=random_seed)
 
 parser.add_argument("--debug",
                     action='store_true', help='default false')  # 默认为false
+
+hparams = parser.parse_args()

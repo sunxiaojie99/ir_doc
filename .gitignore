@@ -1,4 +1,5 @@
 pretrained-models/
+torch_pretrained_models/
 finetuned-models/
 dureader-retrieval-baseline-dataset/
 output/

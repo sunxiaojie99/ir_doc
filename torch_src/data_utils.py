@@ -8,7 +8,7 @@ import transformers
 from tqdm import tqdm
 import numpy as np
 import random
-import tokenization
+from .tokenization import convert_to_unicode, FullTokenizer
 
 here = os.path.dirname(os.path.abspath(__file__))  # 当前文件的目录
 
@@ -20,6 +20,17 @@ def setup_seed(seed):
     random.seed(seed)
     torch.cuda.manual_seed_all(seed)  # 为所有GPU设置随机种子
     torch.backends.cudnn.deterministic = True
+
+
+def save_checkpoint(checkpoint_dict, file):
+    with open(file, 'w', encoding='utf-8') as f_out:
+        json.dump(checkpoint_dict, f_out, ensure_ascii=False, indent=2)
+
+
+def load_checkpoint(file):
+    with open(file, 'r', encoding='utf-8') as f_in:
+        checkpoint_dict = json.load(f_in)
+    return checkpoint_dict
 
 
 def csv_reader(fd, delimiter='\t'):
@@ -51,7 +62,7 @@ def truncate_seq_pair(tokens_a, tokens_b, max_length):
 
 
 def read_data(data_file_path, tokenizer, q_max_seq_len,
-              p_max_seq_len, is_inference=False, label_map_config=None):
+              p_max_seq_len, is_inference=False, label_map_config=None, is_dubug=False):
     """query null para_text_pos null para_text_neg null
     return:
     ['token_ids_q', 'text_type_ids_q', 'position_ids_q', \
@@ -70,27 +81,32 @@ def read_data(data_file_path, tokenizer, q_max_seq_len,
     token_ids_p_pos_list = []
     token_ids_p_neg_list = []
     with open(data_file_path, 'r', encoding='utf8') as f:
-        reader = csv_reader(f)
-        for line in reader:
+        # reader = csv_reader(f)
+        if is_dubug:
+            lines = f.readlines()[:128]
+        else:
+            lines = f.readlines()
+        for l in tqdm(lines):
+            line = l.rstrip('\n').split('\t')
             assert len(line) == 6, line
             # query\ttitle_pos\tpara_pos\ttitle_neg\tpara_neg\tlabel
             query = line[0]
             p_pos = line[2]
             p_neg = line[4]
-            query = tokenization.convert_to_unicode(query)
+            query = convert_to_unicode(query)
             tokens_query = tokenizer.tokenize(query)
 
             # 只裁剪单独的一个，传进去一个空list即可
             truncate_seq_pair([], tokens_query, q_max_seq_len-2)
 
             # pos para
-            p_pos = tokenization.convert_to_unicode(p_pos)
+            p_pos = convert_to_unicode(p_pos)
             tokens_p_pos = tokenizer.tokenize(p_pos)
 
             truncate_seq_pair([], tokens_p_pos, p_max_seq_len-3)
 
             # neg para
-            para_neg = tokenization.convert_to_unicode(p_neg)
+            para_neg = convert_to_unicode(p_neg)
             tokens_para_neg = tokenizer.tokenize(para_neg)
 
             truncate_seq_pair([], tokens_para_neg, p_max_seq_len-3)
@@ -114,7 +130,7 @@ class MyDataset(Dataset):
                  debug=False):
         self.q_max_seq_len = q_max_seq_len
         self.p_max_seq_len = p_max_seq_len
-        self.tokenizer = tokenization.FullTokenizer(
+        self.tokenizer = FullTokenizer(
             vocab_file=vocab_path, do_lower_case=do_lower_case)
         self.bert_tokenizer = transformers.BertTokenizer.from_pretrained(
             pretrained_model_path)
@@ -122,13 +138,13 @@ class MyDataset(Dataset):
         self.is_inference = is_inference
 
         self.token_ids_q_list, self.token_ids_p_pos_list, self.token_ids_p_neg_list = read_data(
-            data_file_path, self.tokenizer, q_max_seq_len, p_max_seq_len, is_inference=False)
+            data_file_path, self.tokenizer, q_max_seq_len, p_max_seq_len, is_inference=False, is_dubug=debug)
 
         if debug:
             print('dug!!!!')
-            self.token_ids_q_list = self.token_ids_q_list[:50]
-            self.token_ids_p_pos_list = self.token_ids_p_pos_list[:50]
-            self.token_ids_p_neg_list = self.token_ids_p_neg_list[:50]
+            self.token_ids_q_list = self.token_ids_q_list[:64]
+            self.token_ids_p_pos_list = self.token_ids_p_pos_list[:64]
+            self.token_ids_p_neg_list = self.token_ids_p_neg_list[:64]
 
         self.num = len(self.token_ids_q_list)
         print('样本数: ', self.num)
@@ -140,26 +156,29 @@ class MyDataset(Dataset):
         if torch.is_tensor(idx):
             idx = idx.tolist()  # 如果是一个tensor类型，变为list
 
-        sample_token_ids_q = self.token_ids_q_list[idx]
+        sample_token_ids_q = self.token_ids_q_list[idx]  # ['微', '信', '分', '享', '链', '接', '打', '开', 'app']
         sample_token_ids_p_pos = self.token_ids_p_pos_list[idx]
         sample_token_ids_p_neg = self.token_ids_p_neg_list[idx]
         encoded_q = self.bert_tokenizer.encode_plus(sample_token_ids_q, max_length=self.q_max_seq_len,
                                                     pad_to_max_length=True, truncation=True)
+        # p self.bert_tokenizer.
+        # convert_ids_to_tokens(self.bert_tokenizer.encode_plus(self.token_ids_q_list[0])['input_ids'])
+        # ['[CLS]', '微', '信', '分', '享', '链', '接', '打', '开', 'app', '[SEP]']
 
         encoded_p_pos = self.bert_tokenizer.encode_plus(sample_token_ids_p_pos, max_length=self.p_max_seq_len,
                                                         pad_to_max_length=True, truncation=True)
         encoded_p_neg = self.bert_tokenizer.encode_plus(sample_token_ids_p_neg, max_length=self.p_max_seq_len,
                                                         pad_to_max_length=True, truncation=True)
-        
+
         sample = {
-            "q_token_ids" : encoded_q['input_ids'],
-            "q_token_type_ids" : encoded_q['token_type_ids'],
-            "q_attention_mask": encoded_q['attention_mask'],
-            "p_pos_token_ids" : encoded_p_pos['input_ids'],
-            "p_pos_token_type_ids" : encoded_p_pos['token_type_ids'],
-            "p_pos_attention_mask": encoded_p_pos['attention_mask'],
-            "p_neg_token_ids" : encoded_p_neg['input_ids'],
-            "p_neg_token_type_ids" : encoded_p_neg['token_type_ids'],
-            "p_neg_attention_mask": encoded_p_neg['attention_mask'],
+            "q_token_ids": torch.tensor(encoded_q['input_ids']),
+            "q_token_type_ids": torch.tensor(encoded_q['token_type_ids']),
+            "q_attention_mask": torch.tensor(encoded_q['attention_mask']),
+            "p_pos_token_ids": torch.tensor(encoded_p_pos['input_ids']),
+            "p_pos_token_type_ids": torch.tensor(encoded_p_pos['token_type_ids']),
+            "p_pos_attention_mask": torch.tensor(encoded_p_pos['attention_mask']),
+            "p_neg_token_ids": torch.tensor(encoded_p_neg['input_ids']),
+            "p_neg_token_type_ids": torch.tensor(encoded_p_neg['token_type_ids']),
+            "p_neg_attention_mask": torch.tensor(encoded_p_neg['attention_mask']),
         }
         return sample

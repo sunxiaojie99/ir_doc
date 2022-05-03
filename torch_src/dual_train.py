@@ -18,19 +18,20 @@ import logging
 import torch.nn.functional as F
 from sklearn import metrics
 
-from .data_utils import setup_seed, MyDataset
+from .data_utils import setup_seed, MyDataset, load_checkpoint, save_checkpoint
+from .dual_hparams import hparams
 from .dual_model import Dual_Train_Model
 from .help_class import RAdam, EMA, set_lr
 
 
 here = os.path.dirname(os.path.abspath(__file__))
-log = logging.getLogger()
 
 
 def train(h_params):
     train_set = h_params.train_set
     test_save = h_params.test_save
     checkpoints_dir = h_params.checkpoints_dir
+    checkpoint_file = h_params.checkpoint_file
     vocab_path = h_params.vocab_path
     pretrained_model_path = h_params.pretrained_model_path
     model_file = os.path.join(checkpoints_dir, 'params_model.bin')
@@ -68,10 +69,18 @@ def train(h_params):
         p_max_seq_len=p_max_seq_len,
         do_lower_case=True,
         is_inference=False,
-        debug=False)
+        debug=debug)
     
     train_loader = DataLoader(dataset, batch_size=batch_size)
     model = Dual_Train_Model(h_params).to(device)
+
+    if os.path.exists(checkpoint_file):
+        checkpoint_dict = load_checkpoint(checkpoint_file)
+        last_epoch = checkpoint_dict['last_epoch'] + 1
+        model.load_state_dict(torch.load(model_file))  # 把之前保存的权重加载到现在的模型中
+    else:
+        checkpoint_dict = {}
+        last_epoch = 0
 
     # 优化器定义
     param_optimizer = list(model.named_parameters())
@@ -142,6 +151,9 @@ def train(h_params):
                         % (1, global_step, epoch, i_batch, np.mean(step_losses),
                             global_step / (time.time() - tic_train),
                             ))
+        
+        checkpoint_dict[epoch] = np.mean(step_losses)
+        checkpoint_dict['last_epoch'] = epoch
         ema.apply_shadow()
         torch.cuda.empty_cache()  # 每个epoch结束之后清空显存，防止显存不足
 
