@@ -1,7 +1,7 @@
 #!/bin/bash
 
-mkdir -p finetuned-models
-mkdir -p pretrained-models
+# mkdir -p finetuned-models
+# mkdir -p pretrained-models
 
 echo "Download DuReader_retrieval dataset"
 wget -nv https://dataset-bj.cdn.bcebos.com/qianyan/dureader-retrieval-baseline-dataset.tar.gz
