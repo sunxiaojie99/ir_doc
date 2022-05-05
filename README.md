@@ -1,12 +1,7 @@
-https://github.com/jingtaozhan/RepBERT-Index/blob/master/dataset.py
-[pytorch 矩阵乘法](https://zhuanlan.zhihu.com/p/100069938)
-[paddle/pytorch对照表](https://www.i4k.xyz/article/qq_32097577/112383360)
 # DuReader<sub>retrieval</sub> Dataset
-**Passage retrieval** requires systems to find relevant passages from a large passage collection, which is an important task in the fields of natural language processing and information retrieval. The traditional retrieval systems use term-based sparse representations (e.g. BM25) to match the query and the candidate passages. But such methods cannot handle term mismatch, i.e. semantically relevant but with few overlapped terms. Recent studies have shown that dense retrieval based on pre-trained language models can effectively deal with such problem via semantic dense representations of query and passages. The method has better performance in many applications, like question answering. 
 
-To promote the research in dense retrieval, we present **DuReader<sub>retrieval</sub>**, a large-scale Chinese dataset for passage retrieval. The dataset contains over **\*90K\*** questions and **\*8M\*** passages from real users, and covers many challenges in real-world applications. For more details about the dataset, please refer to this [paper](https://arxiv.org/abs/2203.10232).
 
-We provide two types of dataset:
+提供了2种数据集:
 
 - **Orginal dataset** in json format, containing queries, their corresponding positive passages, and passage collection.
 - **Pre-processed dataset** in tsv format, used for the baseline system, containing extra hard negative samples that selected using our retrieval model. 

@@ -3,6 +3,7 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import absolute_import
+from curses.ascii import CR
 
 import os
 import time
@@ -17,10 +18,10 @@ import logging
 import torch.nn.functional as F
 from sklearn import metrics
 
-from .data_utils import setup_seed, MyDataset, load_checkpoint, save_checkpoint
-from .dual_hparams import hparams
-from .dual_model import Dual_Train_Model
-from .help_class import RAdam, EMA, set_lr
+from ..help_class import RAdam, EMA, set_lr
+from ..data_utils import setup_seed, load_checkpoint, save_checkpoint
+from .cross_data_utils import CrossDataset
+from .cross_model import Cross_Train_Model
 
 
 here = os.path.dirname(os.path.abspath(__file__))
@@ -32,9 +33,7 @@ def train(h_params):
     checkpoint_file = h_params.checkpoint_file
     vocab_path = h_params.vocab_path
     pretrained_model_path = h_params.pretrained_model_path
-    model_file = os.path.join(checkpoints_dir, 'dual_params.bin')
-
-
+    model_file = os.path.join(checkpoints_dir, 'cross_params.bin')
     log_dir = h_params.log_dir
     device = h_params.device
 
@@ -49,27 +48,29 @@ def train(h_params):
     lr = h_params.lr
     epoch = h_params.epoch
     batch_size = h_params.batch_size
-    q_max_seq_len = h_params.q_max_seq_len
-    p_max_seq_len = h_params.p_max_seq_len
+    max_seq_len = h_params.max_seq_len
     weight_decay = h_params.weight_decay
     warmup_proportion = h_params.warmup_proportion
+    num_labels = h_params.num_labels
 
     debug = h_params.debug
 
     if debug:
         epochs = 2
 
-    dataset = MyDataset(
+    dataset = CrossDataset(
         train_set,
         vocab_path,
         pretrained_model_path,
-        q_max_seq_len=q_max_seq_len,
-        p_max_seq_len=p_max_seq_len,
+        max_seq_len=max_seq_len,
         do_lower_case=True,
         debug=debug)
     
     train_loader = DataLoader(dataset, batch_size=batch_size)
-    model = Dual_Train_Model(h_params).to(device)
+
+    model = Cross_Train_Model(h_params, is_predict=False)
+
+    # 继续之前的训练
 
     # if os.path.exists(checkpoint_file):
     #     checkpoint_dict = load_checkpoint(checkpoint_file)
@@ -107,27 +108,20 @@ def train(h_params):
         print("Epoch: {}".format(epoch))
         model.train()
         step_losses = []
+        labels_true = []
+        labels_pred = []
         for i_batch, sampled_batched in enumerate(train_loader):
-            q_token_ids = sampled_batched['q_token_ids'].to(device)
-            q_token_type_ids = sampled_batched['q_token_type_ids'].to(device)
-            q_attention_mask = sampled_batched['q_attention_mask'].to(device)
-            p_pos_token_ids = sampled_batched['p_pos_token_ids'].to(device)
-            p_pos_token_type_ids = sampled_batched['p_pos_token_type_ids'].to(device)
-            p_pos_attention_mask = sampled_batched['p_pos_attention_mask'].to(device)
-            p_neg_token_ids = sampled_batched['p_neg_token_ids'].to(device)
-            p_neg_token_type_ids = sampled_batched['p_neg_token_type_ids'].to(device)
-            p_neg_attention_mask = sampled_batched['p_neg_attention_mask'].to(device)
+            token_ids = sampled_batched['token_ids'].to(device)
+            token_type_ids = sampled_batched['token_type_ids'].to(device)
+            attention_mask = sampled_batched['attention_mask'].to(device)
+            label_ids = sampled_batched['label_id'].to(device)
             with autocast():
-                logits = model(q_token_ids, q_token_type_ids, q_attention_mask,
-                p_pos_token_ids, p_pos_token_type_ids, p_pos_attention_mask,
-                p_neg_token_ids, p_neg_token_type_ids, p_neg_attention_mask)  # [bs, 2bs]
-
-                batch_size = logits.shape[0]
-                # pre_labels = logits.argmax(1)  # [bs]
-
-                all_labels = torch.tensor(np.array(range(0, batch_size), dtype='int64')).to(device)  # [bs]: 0,1,2..,bs-1
-                # 对于每一行，只有处在对角线的元素才是正例（label），其他同batch的元素都是listwise的负例
-                loss = criterion(logits, all_labels)  # softmax+log+negative log likelihood loss(会取平均)
+                logits = model(token_ids, token_type_ids, attention_mask)
+                loss = criterion(logits, label_ids)
+            
+            pred_tag_ids = logits.argmax(1)
+            labels_true.extend(label_ids.tolist())
+            labels_pred.extend(pred_tag_ids.tolist())
 
             running_loss += loss.item()
             step_losses.append(loss.item())
@@ -150,14 +144,27 @@ def train(h_params):
                             global_step / (time.time() - tic_train),
                             ))
         
-        if checkpoint_dict.get('epoch_loss'):
+        accuracy = metrics.accuracy_score(labels_true, labels_pred)
+        f1 = metrics.f1_score(labels_true, labels_pred, average='macro')
+
+        if checkpoint_dict.get('epoch_acc'):
+            checkpoint_dict['epoch_acc'][epoch] = accuracy
+            checkpoint_dict['epoch_f1'][epoch] = f1
             checkpoint_dict['epoch_loss'][epoch] = np.mean(step_losses)
         else:
+            checkpoint_dict['epoch_acc'] = {epoch: accuracy}
+            checkpoint_dict['epoch_f1'] = {epoch: f1}
             checkpoint_dict['epoch_loss'] = {epoch: np.mean(step_losses)}
-            
+
+
         checkpoint_dict['last_epoch'] = epoch
         save_checkpoint(checkpoint_dict, checkpoint_file)
         ema.apply_shadow()
         torch.cuda.empty_cache()  # 每个epoch结束之后清空显存，防止显存不足
-
+    
     torch.save(model.state_dict(), model_file)  # 只是参数
+
+
+
+    
+    

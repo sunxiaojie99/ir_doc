@@ -9,13 +9,15 @@ here = os.path.dirname(os.path.abspath(__file__))
 
 
 class Dual_Train_Model(nn.Module):
-    def __init__(self, h_params):
+    def __init__(self, h_params, is_prediction=False):
         super().__init__()
         self.pretrained_model_path = h_params.pretrained_model_path
         self.model_config = BertConfig.from_pretrained(
             self.pretrained_model_path)
         self.model_config.output_hidden_states = True
         self.model_config.output_attentions = False
+        self.is_prediction = is_prediction
+        self.batch_size = h_params.batch_size
 
         self.bert_model_q = BertModel.from_pretrained(
             self.pretrained_model_path, config=self.model_config)
@@ -48,10 +50,21 @@ class Dual_Train_Model(nn.Module):
         neg_cls_feats = neg_outputs[1]  # [bs, emb]
 
         p_cls_feats = torch.cat((pos_cls_feats, neg_cls_feats), 0)  # [2bs, emb]
-        print('p_cls_feats shape:', p_cls_feats.shape)
 
-        logits = torch.mm(q_cls_feats, p_cls_feats.T)  # [bs, 2bs]
-        import pdb;pdb.set_trace()
+        if self.is_prediction:
+            # 对于prediction的时候，pos_cls_feats和neg_cls_feats是一样的
+            p_cls_feats = p_cls_feats.narrow_copy(0, 0, self.batch_size) # [bs, emb]
+            logits = torch.mul(q_cls_feats, p_cls_feats)  # Element-wise [bs, emb] 手动实现内积
+            logits = logits.sum(dim=-1) # [bs] 算22向量间的内积
+            graph_vars = {
+                "logits": logits,  # [bs]
+                "q_rep": q_cls_feats,  # [bs, emb]
+                "p_rep": p_cls_feats  # [bs, emb]
+            }
+            return graph_vars
+
+        # 22做内积
+        logits = torch.mm(q_cls_feats, p_cls_feats.T)  # 二维矩阵乘法 [bs, 2bs]
 
         return logits
 

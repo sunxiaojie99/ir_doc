@@ -98,6 +98,7 @@ def create_model(args,
     #pos_cls_feats = fluid.layers.Print(pos_cls_feats, message='pos: ')
 
     p_cls_feats = fluid.layers.concat([pos_cls_feats, neg_cls_feats], axis=0)  # 把正负样本的cls concat一起
+    # [bs, 2emb]
 
     if is_prediction:  # 预测
         p_cls_feats = fluid.layers.slice(p_cls_feats, axes=[0], starts=[0], ends=[batch_size]) 

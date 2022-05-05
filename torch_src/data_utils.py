@@ -62,7 +62,7 @@ def truncate_seq_pair(tokens_a, tokens_b, max_length):
 
 
 def read_data(data_file_path, tokenizer, q_max_seq_len,
-              p_max_seq_len, is_inference=False, label_map_config=None, is_dubug=False):
+              p_max_seq_len, label_map_config=None, is_dubug=False):
     """query null para_text_pos null para_text_neg null
     return:
     ['token_ids_q', 'text_type_ids_q', 'position_ids_q', \
@@ -118,6 +118,68 @@ def read_data(data_file_path, tokenizer, q_max_seq_len,
     return token_ids_q_list, token_ids_p_pos_list, token_ids_p_neg_list
 
 
+def read_dev(data_file_path, tokenizer, q_max_seq_len,
+             p_max_seq_len, label_map_config=None, is_dubug=False):
+    """
+    for query: query_text null null null
+    for doc: null null passage_text null
+    """
+    token_ids_q_list = []
+    token_ids_p_list = []
+    with open(data_file_path, 'r', encoding='utf8') as f:
+        # reader = csv_reader(f)
+        if is_dubug:
+            lines = f.readlines()[:128]
+        else:
+            lines = f.readlines()
+        for l in tqdm(lines):
+            line = l.rstrip('\n').split('\t')
+            assert len(line) == 4, line
+            query = line[0]
+            passage = line[2]
+
+            query = convert_to_unicode(query)
+            tokens_query = tokenizer.tokenize(query)
+            # 只裁剪单独的一个，传进去一个空list即可
+            truncate_seq_pair([], tokens_query, q_max_seq_len-2)
+            token_ids_q_list.append(tokens_query)
+
+            passage = convert_to_unicode(passage)
+            tokens_passage = tokenizer.tokenize(passage)
+            truncate_seq_pair([], tokens_passage, p_max_seq_len-2)
+            token_ids_p_list.append(tokens_passage)
+
+    return token_ids_q_list, token_ids_p_list
+
+
+def read_dev_passage(data_file_path, tokenizer, q_max_seq_len,
+                     p_max_seq_len, label_map_config=None, is_dubug=False):
+    """
+    for query: query_text null null null
+    for doc: null null passage_text null
+    """
+    token_ids_p_list = []
+    with open(data_file_path, 'r', encoding='utf8') as f:
+        # reader = csv_reader(f)
+        if is_dubug:
+            lines = f.readlines()[:128]
+        else:
+            lines = f.readlines()
+        for l in tqdm(lines):
+            line = l.rstrip('\n').split('\t')
+        assert len(line) == 4, line
+        passage = line[2]
+        passage = convert_to_unicode(passage)
+        tokens_passage = tokenizer.tokenize(passage)
+
+        # 只裁剪单独的一个，传进去一个空list即可
+        truncate_seq_pair([], tokens_passage, p_max_seq_len-2)
+
+        token_ids_p_list.append(tokens_passage)
+
+    return token_ids_p_list
+
+
 class MyDataset(Dataset):
     def __init__(self,
                  data_file_path,
@@ -126,7 +188,6 @@ class MyDataset(Dataset):
                  q_max_seq_len=128,
                  p_max_seq_len=512,
                  do_lower_case=True,
-                 is_inference=False,
                  debug=False):
         self.q_max_seq_len = q_max_seq_len
         self.p_max_seq_len = p_max_seq_len
@@ -135,16 +196,15 @@ class MyDataset(Dataset):
         self.bert_tokenizer = transformers.BertTokenizer.from_pretrained(
             pretrained_model_path)
         self.vocab = self.tokenizer.vocab
-        self.is_inference = is_inference
 
         self.token_ids_q_list, self.token_ids_p_pos_list, self.token_ids_p_neg_list = read_data(
-            data_file_path, self.tokenizer, q_max_seq_len, p_max_seq_len, is_inference=False, is_dubug=debug)
+            data_file_path, self.tokenizer, q_max_seq_len, p_max_seq_len, is_dubug=debug)
 
         if debug:
             print('dug!!!!')
-            self.token_ids_q_list = self.token_ids_q_list[:64]
-            self.token_ids_p_pos_list = self.token_ids_p_pos_list[:64]
-            self.token_ids_p_neg_list = self.token_ids_p_neg_list[:64]
+            self.token_ids_q_list = self.token_ids_q_list[:32]
+            self.token_ids_p_pos_list = self.token_ids_p_pos_list[:32]
+            self.token_ids_p_neg_list = self.token_ids_p_neg_list[:32]
 
         self.num = len(self.token_ids_q_list)
         print('样本数: ', self.num)
@@ -156,7 +216,8 @@ class MyDataset(Dataset):
         if torch.is_tensor(idx):
             idx = idx.tolist()  # 如果是一个tensor类型，变为list
 
-        sample_token_ids_q = self.token_ids_q_list[idx]  # ['微', '信', '分', '享', '链', '接', '打', '开', 'app']
+        # ['微', '信', '分', '享', '链', '接', '打', '开', 'app']
+        sample_token_ids_q = self.token_ids_q_list[idx]
         sample_token_ids_p_pos = self.token_ids_p_pos_list[idx]
         sample_token_ids_p_neg = self.token_ids_p_neg_list[idx]
         encoded_q = self.bert_tokenizer.encode_plus(sample_token_ids_q, max_length=self.q_max_seq_len,
@@ -180,5 +241,74 @@ class MyDataset(Dataset):
             "p_neg_token_ids": torch.tensor(encoded_p_neg['input_ids']),
             "p_neg_token_type_ids": torch.tensor(encoded_p_neg['token_type_ids']),
             "p_neg_attention_mask": torch.tensor(encoded_p_neg['attention_mask']),
+        }
+        return sample
+
+
+class InferDataset(Dataset):
+    def __init__(self,
+                 data_file_path,
+                 vocab_path,
+                 pretrained_model_path,
+                 q_max_seq_len=128,
+                 p_max_seq_len=512,
+                 do_lower_case=True,
+                 test_type='query',
+                 debug=False):
+        self.q_max_seq_len = q_max_seq_len
+        self.p_max_seq_len = p_max_seq_len
+        self.tokenizer = FullTokenizer(
+            vocab_file=vocab_path, do_lower_case=do_lower_case)
+        self.bert_tokenizer = transformers.BertTokenizer.from_pretrained(
+            pretrained_model_path)
+        self.vocab = self.tokenizer.vocab
+        self.test_type = test_type
+
+        # if test_type == 'query':
+        #     print('=====InferDataset: query')
+        #     self.token_ids_list = read_dev_query(
+        #         data_file_path, self.tokenizer, q_max_seq_len, p_max_seq_len, is_dubug=debug)
+        # elif test_type == 'passage':
+        #     print('=====InferDataset: passage')
+        #     self.token_ids_list = read_dev_passage(
+        #         data_file_path, self.tokenizer, q_max_seq_len, p_max_seq_len, is_dubug=debug)
+
+        self.token_ids_q_list, self.token_ids_p_list = read_dev(
+            data_file_path, self.tokenizer, q_max_seq_len, p_max_seq_len, is_dubug=debug)
+            
+        if debug:
+            print('dug!!!!')
+            self.token_ids_q_list = self.token_ids_q_list[:32]
+            self.token_ids_p_list = self.token_ids_p_list[:32]
+
+        self.num = len(self.token_ids_q_list)
+        print('样本数: ', self.num)
+
+    def __len__(self):
+        return self.num
+
+    def __getitem__(self, idx):
+        if torch.is_tensor(idx):
+            idx = idx.tolist()  # 如果是一个tensor类型，变为list
+
+        # ['微', '信', '分', '享', '链', '接', '打', '开', 'app']
+        sample_token_ids_q = self.token_ids_q_list[idx]
+        encoded_q = self.bert_tokenizer.encode_plus(sample_token_ids_q, max_length=self.q_max_seq_len,
+                                                    pad_to_max_length=True, truncation=True)
+        # p self.bert_tokenizer.
+        # convert_ids_to_tokens(self.bert_tokenizer.encode_plus(self.token_ids_q_list[0])['input_ids'])
+        # ['[CLS]', '微', '信', '分', '享', '链', '接', '打', '开', 'app', '[SEP]']
+        # ['微', '信', '分', '享', '链', '接', '打', '开', 'app']
+        sample_token_ids_p = self.token_ids_p_list[idx]
+        encoded_p = self.bert_tokenizer.encode_plus(sample_token_ids_p, max_length=self.q_max_seq_len,
+                                                    pad_to_max_length=True, truncation=True)
+
+        sample = {
+            "token_ids_q": torch.tensor(encoded_q['input_ids']),
+            "token_type_ids_q": torch.tensor(encoded_q['token_type_ids']),
+            "attention_mask_q": torch.tensor(encoded_q['attention_mask']),
+            "token_ids_p": torch.tensor(encoded_p['input_ids']),
+            "token_type_ids_p": torch.tensor(encoded_p['token_type_ids']),
+            "attention_mask_p": torch.tensor(encoded_p['attention_mask'])
         }
         return sample

@@ -7,6 +7,7 @@ dureader-retrieval-baseline-dataset.tar.gz
 saved_models/
 torch_src/__pycache__/
 .idea/
+**/__pycache__
 
 # Build and Release Folders
 bin-debug/

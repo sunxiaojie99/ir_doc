@@ -8,21 +8,22 @@ import sys
 from collections import defaultdict
 
 
-q2id_map = sys.argv[1]
-p2id_map = sys.argv[2]
-recall_result = sys.argv[3]
+q2id_map = sys.argv[1]  # dev/q2qid.dev.json
+p2id_map = sys.argv[2]  # passage2id.map.json: {"0": "67236474b99b2215c296a6942ad6e04c"}
+recall_result = sys.argv[3]  # qid, pid, rank, score
+topk = int(sys.argv[4])
 
 outputf = 'output/dual_res.json'
 
 # map query to its origianl ID
 with open(q2id_map, "r") as fr:
-    q2qid = json.load(fr)
+    q2qid = json.load(fr)  # query文本映射原始id
 
 # map para line number to its original ID
 with open(p2id_map, "r") as fr:
-    pcid2pid = json.load(fr)
+    pcid2pid = json.load(fr)  # passage的行号 映射实际的pid
 
-qprank = defaultdict(list)
+qprank = defaultdict(list)  # query的原始id->[pid1, pid2,...,pid50], 召回阶段顺序不重要
 with open(recall_result, 'r') as f:
     for line in f.readlines():
         q, pcid, rank, score = line.strip().split('\t')
@@ -30,7 +31,7 @@ with open(recall_result, 'r') as f:
 
 # check for length
 for key in list(qprank.keys()):
-    assert len(qprank[key]) == 50
+    assert len(qprank[key]) == topk, str(len(qprank[key])) + '#' + str(topk)
 
 with open(outputf, 'w', encoding='utf-8') as fp:
     json.dump(qprank, fp, ensure_ascii=False, indent='\t')

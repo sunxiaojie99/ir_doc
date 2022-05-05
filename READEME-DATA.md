@@ -44,8 +44,9 @@
 
 ## dev/
 ### dev.json 验证集样本
-- content: development samples
+- content: development samples 带groundtrue
 - format: json
+- {"question_id": "", "question": "", "answer_paragraphs": [{"paragraph_id": "", "paragraph_text": ""}, ...
 
 ### dev.q.format 验证集的query列表
 - content: list of queries from the development set
