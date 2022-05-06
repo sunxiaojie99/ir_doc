@@ -33,7 +33,6 @@ python do_dual_train.py --debug
 
 cd dureader-retrieval-baseline-dataset/passage-collection/
 python handle.py
-```
 
 # 1. 更改相应的参数，torch_src/inference_de_hparams.py, 可能需要更改的：
 - pretrained_model_path
