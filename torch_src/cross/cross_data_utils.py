@@ -116,3 +116,53 @@ class CrossDataset(Dataset):
             'label_id': torch.tensor(sample_label)
         }
         return sample
+
+class CrossDataset_Test(Dataset):
+    def __init__(self,
+                 data_file_path,
+                 vocab_path,
+                 pretrained_model_path,
+                 max_seq_len=512,
+                 do_lower_case=True,
+                 debug=False):
+        self.max_seq_len = max_seq_len
+        self.tokenizer = FullTokenizer(
+            vocab_file=vocab_path, do_lower_case=do_lower_case)
+        self.bert_tokenizer = transformers.BertTokenizer.from_pretrained(
+            pretrained_model_path)
+        self.vocab = self.tokenizer.vocab
+
+        self.token_ids_query_list, self.token_ids_p_list, self.labels = read_data(
+            data_file_path, self.tokenizer, max_seq_len, is_dubug=debug)
+
+        if debug:
+            print('dug!!!!')
+            self.token_ids_query_list = self.token_ids_query_list[:32]
+            self.token_ids_p_list = self.token_ids_p_list[:32]
+            self.labels = self.labels[:32]
+        self.num = len(self.token_ids_query_list)
+        print('样本数: ', self.num)
+
+    def __len__(self):
+        return self.num
+
+    def __getitem__(self, idx):
+        if torch.is_tensor(idx):
+            idx = idx.tolist()  # 如果是一个tensor类型，变为list
+
+        query = self.token_ids_query_list[idx]
+        para = self.token_ids_p_list[idx]
+        sample_label = self.labels[idx]
+        # 添加[CLS],[SEP], [SEP]
+        encoded = self.bert_tokenizer.encode_plus(query, para,
+                                                  padding='max_length', truncation=True, max_length=self.max_seq_len)
+        sample_token_ids = encoded['input_ids']
+        sample_token_type_ids = encoded['token_type_ids']
+        sample_attention_mask = encoded['attention_mask']
+        sample = {
+            'token_ids': torch.tensor(sample_token_ids),
+            'token_type_ids': torch.tensor(sample_token_type_ids),
+            'attention_mask': torch.tensor(sample_attention_mask),
+            'label_id': torch.tensor(sample_label)
+        }
+        return sample

@@ -368,7 +368,7 @@ def evaluate_wrapper(args, reader, exe, test_prog, test_pyreader, graph_vars,
 
 def predict_wrapper(args, reader, exe, test_prog, test_pyreader, graph_vars,
                     epoch, steps):
-    test_sets = args.test_set.split(',')
+    test_sets = args.test_set.split(',')  # dureader-retrieval-baseline-dataset/auxiliary/dev.retrieval.top50.res.tsv
     save_dirs = args.test_save.split(',')
     assert len(test_sets) == len(save_dirs)
 
