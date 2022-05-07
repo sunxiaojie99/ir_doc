@@ -20,7 +20,7 @@ eg, torch_pretrained_models/chinese-bert-wwm
 # 4. gpu单卡运行，如果不是卡1，还需要改一下do_dual_train.py中的 os.environ['CUDA_VISIBLE_DEVICES'] = '1'设置
 
 # 5.开始运行
-CUDA_VISIBLE_DEVICES=1 nohup python3 do_dual_train.py > process_do_dual_train.log 2>&1 &
+CUDA_VISIBLE_DEVICES=1 nohup python3 -u do_dual_train.py > process_do_dual_train.log 2>&1 &
 
 # 注：cpu 上debug
 python do_dual_train.py --debug
@@ -61,6 +61,12 @@ MODEL_OUTPUT="output/res.top50"
 
 # 50 代表上一步我们划分的是 top几，这里用于数量检查
 python metric/convert_recall_res_to_json.py $QUERY2ID $PARA2ID $MODEL_OUTPUT 50
+```
+
+4.转换官方召回50到提交格式
+```
+ID_MAP="dureader-retrieval-baseline-dataset/auxiliary/dev.retrieval.top50.res.id_map.tsv"
+python metric/convert_offical_recall_res_to_json.py $ID_MAP 50
 ```
 
 # 精排模型 run

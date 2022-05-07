@@ -11,6 +11,7 @@ checkpoint_file=os.path.join(checkpoints_dir, 'cross_checkpoint.json')
 pretrained_model_path = os.path.join(here, '../../torch_pretrained_models/chinese-bert-wwm') # https://huggingface.co/nghuyong/ernie-gram-zh
 vocab_path = os.path.join(here, '../../torch_pretrained_models/chinese-bert-wwm/vocab.txt')
 log_dir = os.path.join(here, '../../log_dir')
+save_path = os.path.join(checkpoints_dir, 'cross_infer_top50.score')
 
 model_path = os.path.join(checkpoints_dir, 'cross_params.bin')
 
@@ -35,6 +36,7 @@ parser.add_argument("--pretrained_model_path", type=str, default=pretrained_mode
 parser.add_argument("--vocab_path", type=str, default=vocab_path)
 parser.add_argument('--log_dir', type=str, default=log_dir)
 parser.add_argument("--device", type=str, default=device)
+parser.add_argument("--save_path", type=str, default=save_path)
 
 parser.add_argument("--lr", type=float, default=lr)
 

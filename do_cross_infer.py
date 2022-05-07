@@ -1,6 +1,6 @@
 import os
-from torch_src.cross.cross_hparams import hparams
-from torch_src.cross.cross_train import train
+from torch_src.cross.inference_cross_hparams import hparams
+from torch_src.cross.inference_cross import infer
 
 os.environ['CUDA_VISIBLE_DEVICES'] = '1'
 here = os.path.dirname(os.path.abspath(__file__))
@@ -12,7 +12,7 @@ def main():
     print('Arguments:')
     for arg in vars(hparams):
         print('    {}: {}'.format(arg, getattr(hparams, arg)))
-    train(hparams)
+    infer(hparams)
 
 
 if __name__ == '__main__':

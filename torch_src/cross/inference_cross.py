@@ -19,22 +19,20 @@ import torch.nn.functional as F
 from sklearn import metrics
 
 from .cross_model import Cross_Train_Model
-from .cross_data_utils import CrossDataset_Test
+from .cross_data_utils import CrossDataset
+
 
 def infer(h_params):
     test_set = h_params.test_set
-    checkpoints_dir = h_params.checkpoints_dir
-    model_file = h_params.model_file
+    model_path = h_params.model_path
     pretrained_model_path = h_params.pretrained_model_path
     vocab_path = h_params.vocab_path
     device = h_params.device
     debug = h_params.debug
+    save_path = h_params.save_path
 
     batch_size = h_params.batch_size
     max_seq_len = h_params.max_seq_len
-    weight_decay = h_params.weight_decay
-    warmup_proportion = h_params.warmup_proportion
-    num_labels = h_params.num_labels
 
     
 
@@ -49,17 +47,17 @@ def infer(h_params):
     test_loader = DataLoader(dataset, batch_size=batch_size)
 
     model = Cross_Train_Model(h_params, is_predict=True)
+    model.load_state_dict(torch.load(model_path, map_location=device))
 
     model.eval()
 
-    labels_true = []
     labels_pred = []
-    query_list = []
-    para_list = []
+    all_count = 0
 
     with torch.no_grad():
 
         for i, sampled_batched in enumerate(tqdm(test_loader, desc='predict')):
+            all_count += len(sampled_batched)
             token_ids = sampled_batched['token_ids'].to(device)
             token_type_ids = sampled_batched['token_type_ids'].to(device)
             attention_mask = sampled_batched['attention_mask'].to(device)
@@ -68,10 +66,11 @@ def infer(h_params):
             # [batch_size, label_set_size]
             pred_tag_ids = logits.argmax(1)
             labels_pred.extend(pred_tag_ids.tolist())
-            sent_1_list.extend(sampled_batched['sent_1'])
-            sent_2_list.extend(sampled_batched['sent_2'])
-            if not is_test:
-                label_ids = sampled_batched['label_id'].to(device)
-                labels_true.extend(label_ids.tolist())  # 把tensor转为list
+    
+    print('所有预测的样本数：', all_count)
+    print('score 条数:', len(labels_pred))
+    with open(save_path, 'w') as f:
+        for p in labels_pred:
+            f.write('{}\n'.format(p))
 
 

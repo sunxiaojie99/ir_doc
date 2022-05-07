@@ -1,6 +1,5 @@
 import os
 
-from sympy import im
 from torch_src.inference_de_hparams import gen_params
 from torch_src.inference_dual_encoder import infer
 from torch_src.inference_index_search import enter
