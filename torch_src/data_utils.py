@@ -1,6 +1,8 @@
 import re
 import os
 import json
+from turtle import pd
+from sympy import im
 
 import torch
 from torch.utils.data import Dataset
@@ -8,6 +10,7 @@ import transformers
 from tqdm import tqdm
 import numpy as np
 import random
+import time
 from .tokenization import convert_to_unicode, FullTokenizer
 
 here = os.path.dirname(os.path.abspath(__file__))  # 当前文件的目录
@@ -80,12 +83,14 @@ def read_data(data_file_path, tokenizer, q_max_seq_len,
     token_ids_q_list = []
     token_ids_p_pos_list = []
     token_ids_p_neg_list = []
-    with open(data_file_path, 'r', encoding='utf8') as f:
+    with open(data_file_path, 'r', encoding='utf-8') as f:
         # reader = csv_reader(f)
         if is_dubug:
             lines = f.readlines()[:128]
         else:
             lines = f.readlines()
+        begin_time = time.time()
+        count = 0
         for l in tqdm(lines):
             line = l.rstrip('\n').split('\t')
             assert len(line) == 6, line
@@ -114,6 +119,9 @@ def read_data(data_file_path, tokenizer, q_max_seq_len,
             token_ids_q_list.append(tokens_query)
             token_ids_p_pos_list.append(tokens_p_pos)
             token_ids_p_neg_list.append(tokens_para_neg)
+            count += 1
+        end_time = time.time()
+        print('one example time cost:', (end_time-begin_time)/count)
 
     return token_ids_q_list, token_ids_p_pos_list, token_ids_p_neg_list
 

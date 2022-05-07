@@ -149,6 +149,9 @@ def train(h_params):
                         % (1, global_step, epoch, i_batch, np.mean(step_losses),
                             global_step / (time.time() - tic_train),
                             ))
+            
+        epoch_model_file = os.path.join(checkpoints_dir, 'epoch_{}_dual_params.bin'.format(epoch))
+        torch.save(model.state_dict(), epoch_model_file)  # 每个epoch都保存一下
         
         if checkpoint_dict.get('epoch_loss'):
             checkpoint_dict['epoch_loss'][epoch] = np.mean(step_losses)
