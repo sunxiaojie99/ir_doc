@@ -24,12 +24,15 @@ from .data_utils import InferDataset
 
 
 def build_engine(para_emb_list, dim):
+    faiss_res = faiss.StandardGpuResources()
     index = faiss.IndexFlatIP(dim)  # 点乘，归一化的向量点乘即cosine相似度（越大越好）
+    gpu_index = faiss.index_cpu_to_gpu(faiss_res, 0, index)
     # add paragraph embedding
     p_emb_matrix = np.asarray(para_emb_list)
-    index.add(p_emb_matrix.astype('float32'))  # add vectors to the index
+    gpu_index.add(p_emb_matrix.astype('float32'))  # add vectors to the index
     # print(index.ntotal)
     # print ("insert done", file=sys.stderr)
+    index = faiss.index_gpu_to_cpu(gpu_index)
     return index
 
 

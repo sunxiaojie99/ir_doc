@@ -53,7 +53,8 @@ class Dual_Train_Model(nn.Module):
 
         if self.is_prediction:
             # 对于prediction的时候，pos_cls_feats和neg_cls_feats是一样的
-            p_cls_feats = p_cls_feats.narrow_copy(0, 0, self.batch_size) # [bs, emb]
+            # p_cls_feats = p_cls_feats.narrow_copy(0, 0, self.batch_size) # [bs, emb]
+            p_cls_feats = pos_cls_feats
             logits = torch.mul(q_cls_feats, p_cls_feats)  # Element-wise [bs, emb] 手动实现内积
             logits = logits.sum(dim=-1) # [bs] 算22向量间的内积
             graph_vars = {

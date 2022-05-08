@@ -4,7 +4,7 @@ from torch_src.inference_de_hparams import gen_params
 from torch_src.inference_dual_encoder import infer
 from torch_src.inference_index_search import enter
 
-os.environ['CUDA_VISIBLE_DEVICES'] = '1'
+os.environ['CUDA_VISIBLE_DEVICES'] = '0'
 here = os.path.dirname(os.path.abspath(__file__))
 
 
