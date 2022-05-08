@@ -16,7 +16,7 @@ device = "cuda" if torch.cuda.is_available() else "cpu"
 hidden_size=json.load(open(os.path.join(pretrained_model_path, 'config.json'), 'r', encoding='utf-8'))['hidden_size']
 lr=1e-5
 epoch = 3
-batch_size=8
+batch_size=16
 max_seq_len=384
 weight_decay=0.0
 warmup_proportion=0.1

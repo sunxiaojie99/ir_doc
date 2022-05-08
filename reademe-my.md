@@ -42,7 +42,7 @@ python torch_src/handle_passage_pre.py
 # 3. gpu单卡运行，如果不是卡1，还需要改一下do_dual_infer.py中的 os.environ['CUDA_VISIBLE_DEVICES'] = '1'设置
 
 # 4.开始运行
-CUDA_VISIBLE_DEVICES=1 nohup python3 do_dual_infer.py > process_do_dual_infer.log 2>&1 &
+CUDA_VISIBLE_DEVICES=1 nohup python3 -u do_dual_infer.py > process_do_dual_infer.log 2>&1 &
 
 # 注：cpu debug
 python do_dual_infer.py --debug
@@ -73,7 +73,9 @@ python metric/convert_offical_recall_res_to_json.py $ID_MAP 50
 - 输入数据格式：`query null para_text label`
 - 输出:
 ```
-python do_cross_train.py --debug
+CUDA_VISIBLE_DEVICES=0 nohup python3 -u do_cross_train.py > process_do_cross_train.log 2>&1 &
+
+CUDA_VISIBLE_DEVICES=0 python do_cross_train.py --debug
 ```
 
 2.针对召回模型得到的topk，进行重排序

@@ -68,7 +68,7 @@ def train(h_params):
     
     train_loader = DataLoader(dataset, batch_size=batch_size)
 
-    model = Cross_Train_Model(h_params, is_predict=False)
+    model = Cross_Train_Model(h_params, is_predict=False).to(device)
 
     # 继续之前的训练
 

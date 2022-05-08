@@ -7,8 +7,7 @@ here = os.path.dirname(os.path.abspath(__file__))
 
 
 def main():
-    """CUDA_VISIBLE_DEVICES=1 nohup python3 do_train.py > process_5fold_bce_context_3_ernie_gram.log 2>&1 &"""
-    hparams.debug = True
+    # hparams.debug = True
     print('Arguments:')
     for arg in vars(hparams):
         print('    {}: {}'.format(arg, getattr(hparams, arg)))
