@@ -2,7 +2,7 @@ import os
 from torch_src.dual_hparams import hparams
 from torch_src.dual_train import train
 
-os.environ['CUDA_VISIBLE_DEVICES'] = '1'
+os.environ['CUDA_VISIBLE_DEVICES'] = '0'
 here = os.path.dirname(os.path.abspath(__file__))
 
 
