@@ -137,7 +137,7 @@ def read_dev(data_file_path, tokenizer, q_max_seq_len,
     with open(data_file_path, 'r', encoding='utf8') as f:
         # reader = csv_reader(f)
         if is_dubug:
-            lines = f.readlines()[376572:376574]
+            lines = f.readlines()[:128]
         else:
             lines = f.readlines()
         
@@ -146,8 +146,7 @@ def read_dev(data_file_path, tokenizer, q_max_seq_len,
             assert len(line) == 4, line
             query = line[0]
             passage = line[2]
-            import pdb;pdb.set_trace()
-
+            
             query = convert_to_unicode(query)
             tokens_query = tokenizer.tokenize(query)
             # 只裁剪单独的一个，传进去一个空list即可
