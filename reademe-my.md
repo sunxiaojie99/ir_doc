@@ -52,7 +52,7 @@ python do_dual_infer.py --debug
 ```
 QUERY2ID="dureader-retrieval-baseline-dataset/dev/q2qid.dev.json"
 
-PARA2ID="dureader-retrieval-baseline-dataset/passage-collection/passage2id.map.json"
+PARA2ID="dureader-retrieval-baseline-dataset/passage-collection/new_passage2id.map.json"
 
 # 如果上一步topk=50，这里的后缀就是50
 MODEL_OUTPUT="output/res.top50"
