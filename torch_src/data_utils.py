@@ -137,14 +137,16 @@ def read_dev(data_file_path, tokenizer, q_max_seq_len,
     with open(data_file_path, 'r', encoding='utf8') as f:
         # reader = csv_reader(f)
         if is_dubug:
-            lines = f.readlines()[:128]
+            lines = f.readlines()[376572:376574]
         else:
             lines = f.readlines()
+        
         for l in tqdm(lines):
             line = l.rstrip('\n').split('\t')
             assert len(line) == 4, line
             query = line[0]
             passage = line[2]
+            import pdb;pdb.set_trace()
 
             query = convert_to_unicode(query)
             tokens_query = tokenizer.tokenize(query)
@@ -175,15 +177,15 @@ def read_dev_passage(data_file_path, tokenizer, q_max_seq_len,
             lines = f.readlines()
         for l in tqdm(lines):
             line = l.rstrip('\n').split('\t')
-        assert len(line) == 4, line
-        passage = line[2]
-        passage = convert_to_unicode(passage)
-        tokens_passage = tokenizer.tokenize(passage)
+            assert len(line) == 4, line
+            passage = line[2]
+            passage = convert_to_unicode(passage)
+            tokens_passage = tokenizer.tokenize(passage)
 
-        # 只裁剪单独的一个，传进去一个空list即可
-        truncate_seq_pair([], tokens_passage, p_max_seq_len-2)
+            # 只裁剪单独的一个，传进去一个空list即可
+            truncate_seq_pair([], tokens_passage, p_max_seq_len-2)
 
-        token_ids_p_list.append(tokens_passage)
+            token_ids_p_list.append(tokens_passage)
 
     return token_ids_p_list
 

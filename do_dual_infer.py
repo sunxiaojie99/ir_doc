@@ -17,13 +17,13 @@ def main():
     for arg in vars(hparams):
         print('    {}: {}'.format(arg, getattr(hparams, arg)))
 
-    infer(hparams)
+    # infer(hparams)  # for query
 
     hparams = gen_params('passage')
-    # hparams.debug = True
+    hparams.debug = True
     infer(hparams)
 
-    enter(topk=50, bs=1000)
+    # enter(topk=50, bs=1000)
 
 
 if __name__ == '__main__':

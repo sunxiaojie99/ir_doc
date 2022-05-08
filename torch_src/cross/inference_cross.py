@@ -57,8 +57,8 @@ def infer(h_params):
     with torch.no_grad():
 
         for i, sampled_batched in enumerate(tqdm(test_loader, desc='predict')):
-            all_count += len(sampled_batched)
             token_ids = sampled_batched['token_ids'].to(device)
+            all_count += token_ids.shape[0]
             token_type_ids = sampled_batched['token_type_ids'].to(device)
             attention_mask = sampled_batched['attention_mask'].to(device)
 
