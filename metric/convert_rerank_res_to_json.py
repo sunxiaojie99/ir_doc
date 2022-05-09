@@ -23,7 +23,9 @@ with open(id_f, 'r') as f:
         q_ids.append((v[0]))
         p_ids.append((v[1]))
 
-for q, p, s in zip(q_ids, p_ids, scores):
+num = len(scores)
+
+for q, p, s in zip(q_ids[:num], p_ids[:num], scores):
     q_dic[q].append((s, p))
 
 output = []
