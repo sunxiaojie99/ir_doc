@@ -22,13 +22,12 @@ def _clean_text(text):
     return "".join(output)
 
 
-def handle(data_dir, map_file, out_file, new_map_file):
+def handle(data_dir, file_name_list, map_file, out_file, new_map_file):
     """
     passage文件中，有的passage比如376574行，全部由控制字符组成，需要提前过滤掉.
-    eg: "\x07\x07\x07\x05\x07"
+    eg: "\x07\x07\x07\x05\x07", "\ue7a3 \ue7a5 \ue7a4"
     """
-
-    file_name_list = os.listdir(data_dir)
+    print(file_name_list)
 
     with open(map_file, 'r', encoding='utf-8') as f_in:
         passage_lineidx2id = json.load(f_in)
@@ -39,7 +38,7 @@ def handle(data_dir, map_file, out_file, new_map_file):
     new_passage_lineidx2id = {}
     count = 0  # 原始行👌
     new_count = 0
-    print(file_name_list)
+    
     for file_name in file_name_list:
         if "part" in file_name:
             file = os.path.join(data_dir, file_name)
@@ -50,7 +49,7 @@ def handle(data_dir, map_file, out_file, new_map_file):
                     count += 1
                     line = l.strip().split('\t')
                     passage = line[2]
-                    clean_text = _clean_text(passage)
+                    clean_text = _clean_text(passage).strip()
                     if clean_text == "":
                         continue
                     
@@ -82,8 +81,15 @@ def merge(data_dir, out_file):
     f_w.close()
     print(count)
 
-
-handle(os.path.join(here, "../dureader-retrieval-baseline-dataset/passage-collection/"),
+file_name_list = [
+    os.path.join(here, "../dureader-retrieval-baseline-dataset/passage-collection/part-00"),
+    os.path.join(here, "../dureader-retrieval-baseline-dataset/passage-collection/part-01"),
+    os.path.join(here, "../dureader-retrieval-baseline-dataset/passage-collection/part-02"),
+    os.path.join(here, "../dureader-retrieval-baseline-dataset/passage-collection/part-03")
+]
+handle(
+        os.path.join(here, "../dureader-retrieval-baseline-dataset/passage-collection/"),
+        file_name_list,
        os.path.join(
            here, "../dureader-retrieval-baseline-dataset/passage-collection/passage2id.map.json"),
        os.path.join(here, "../dureader-retrieval-baseline-dataset/passage-collection/all_doc"),

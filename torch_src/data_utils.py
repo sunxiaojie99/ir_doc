@@ -159,34 +159,6 @@ def read_dev(data_file_path, tokenizer, q_max_seq_len,
     return token_ids_q_list, token_ids_p_list
 
 
-def read_dev_passage(data_file_path, tokenizer, q_max_seq_len,
-                     p_max_seq_len, label_map_config=None, is_dubug=False):
-    """
-    for query: query_text null null null
-    for doc: null null passage_text null
-    """
-    token_ids_p_list = []
-    with open(data_file_path, 'r', encoding='utf8') as f:
-        # reader = csv_reader(f)
-        if is_dubug:
-            lines = f.readlines()[:128]
-        else:
-            lines = f.readlines()
-        for l in tqdm(lines):
-            line = l.rstrip('\n').split('\t')
-            assert len(line) == 4, line
-            passage = line[2]
-            passage = convert_to_unicode(passage)
-            tokens_passage = tokenizer.tokenize(passage)
-
-            # 只裁剪单独的一个，传进去一个空list即可
-            truncate_seq_pair([], tokens_passage, p_max_seq_len-2)
-
-            token_ids_p_list.append(tokens_passage)
-
-    return token_ids_p_list
-
-
 class MyDataset(Dataset):
     def __init__(self,
                  data_file_path,
