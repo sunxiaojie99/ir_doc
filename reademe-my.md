@@ -87,6 +87,9 @@ CUDA_VISIBLE_DEVICES=0 python do_cross_train.py --debug
 # dataset
 8096668 个文章,800多w个文章
 
+召回的训练集，889580，80多w条
+精排的训练集，1111975，100多w条
+
 # ref
 - https://github.com/jingtaozhan/RepBERT-Index/blob/master/dataset.py
 - [pytorch 矩阵乘法](https://zhuanlan.zhihu.com/p/100069938)

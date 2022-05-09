@@ -15,7 +15,7 @@ log_dir = os.path.join(here, '../../log_dir')
 device = "cuda" if torch.cuda.is_available() else "cpu"
 hidden_size=json.load(open(os.path.join(pretrained_model_path, 'config.json'), 'r', encoding='utf-8'))['hidden_size']
 lr=1e-5
-epoch = 3
+epochs = 3
 batch_size=16
 max_seq_len=384
 weight_decay=0.0
@@ -35,7 +35,7 @@ parser.add_argument("--device", type=str, default=device)
 
 parser.add_argument("--lr", type=float, default=lr)
 
-parser.add_argument("--epoch", type=int, default=epoch)
+parser.add_argument("--epochs", type=int, default=epochs)
 parser.add_argument("--hidden_size", type=int, default=hidden_size)
 parser.add_argument("--batch_size", type=int, default=batch_size)
 parser.add_argument("--max_seq_len", type=int, default=max_seq_len)

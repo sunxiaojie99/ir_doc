@@ -47,7 +47,7 @@ def train(h_params):
         os.makedirs(checkpoints_dir)
 
     lr = h_params.lr
-    epoch = h_params.epoch
+    epochs = h_params.epochs
     batch_size = h_params.batch_size
     q_max_seq_len = h_params.q_max_seq_len
     p_max_seq_len = h_params.p_max_seq_len
