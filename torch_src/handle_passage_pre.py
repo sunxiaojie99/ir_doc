@@ -58,7 +58,7 @@ def handle(data_dir, file_name_list, map_file, out_file, new_map_file):
                     new_count += 1
 
     f_w.close()
-    print('新的文章数：', new_count)  # 新的文章数： 8096660
+    print('新的文章数：', new_count)  # 新的文章数： 8096659
 
     with open(new_map_file, 'w', encoding='utf-8') as f_out:
         json.dump(new_passage_lineidx2id, f_out, ensure_ascii=False, indent=2)
