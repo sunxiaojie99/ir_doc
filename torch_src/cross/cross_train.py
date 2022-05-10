@@ -144,6 +144,9 @@ def train(h_params):
                             global_step / (time.time() - tic_train),
                             ))
         
+        epoch_model_file = os.path.join(checkpoints_dir, 'epoch_{}_cross_params.bin'.format(epoch))
+        torch.save(model.state_dict(), epoch_model_file)  # 每个epoch都保存一下
+
         accuracy = metrics.accuracy_score(labels_true, labels_pred)
         f1 = metrics.f1_score(labels_true, labels_pred, average='macro')
 
