@@ -136,3 +136,4 @@ python metric/evaluation.py $REFERENCE_FIEL $PREDICTION_FILE
 - [paddle/pytorch对照表](https://www.i4k.xyz/article/qq_32097577/112383360)
 - [faiss 教程](https://zhuanlan.zhihu.com/p/320653340)
 - [比赛链接](https://aistudio.baidu.com/aistudio/competition/detail/157/0/introduction)
+- [损失函数技术总结及Pytorch使用示例](https://zhuanlan.zhihu.com/p/383997503)

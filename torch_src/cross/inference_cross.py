@@ -79,8 +79,8 @@ def infer(h_params):
     print('所有预测的样本数：', all_count)
     print('score 条数:', len(labels_pred))
     with open(save_path, 'w') as f:
-        for p in labels_pred_score:
-            f.write('{}\n'.format(p))
+        for p in all_pred_score:
+            f.write('{}\n'.format(p[1]))  # 只记录预测为1的分数
     
     with open(all_score_save_path, 'w') as f:
         for p in all_pred_score:
