@@ -49,25 +49,32 @@ def infer(h_params):
     model.eval()
 
     labels_pred = []
+    labels_pred_score = []
     all_count = 0
 
     with torch.no_grad():
 
         for i, sampled_batched in enumerate(tqdm(test_loader, desc='predict')):
             token_ids = sampled_batched['token_ids'].to(device)
-            all_count += token_ids.shape[0]
+            bs = token_ids.shape[0]
+            all_count += bs
             token_type_ids = sampled_batched['token_type_ids'].to(device)
             attention_mask = sampled_batched['attention_mask'].to(device)
 
             logits = model(token_ids, token_type_ids, attention_mask)  # 和forward对应
+            logits = torch.softmax(logits, 1)
             # [batch_size, label_set_size]
+            index = torch.arange(0, bs, 1)
             pred_tag_ids = logits.argmax(1)
+            pred_score = logits[index, pred_tag_ids]
             labels_pred.extend(pred_tag_ids.tolist())
+            labels_pred_score.extend(pred_score.tolist())
+            import pdb;pdb.set_trace()
     
     print('所有预测的样本数：', all_count)
     print('score 条数:', len(labels_pred))
     with open(save_path, 'w') as f:
-        for p in labels_pred:
+        for p in labels_pred_score:
             f.write('{}\n'.format(p))
 
 
