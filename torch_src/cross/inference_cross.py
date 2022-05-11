@@ -69,7 +69,6 @@ def infer(h_params):
             pred_score = logits[index, pred_tag_ids]
             labels_pred.extend(pred_tag_ids.tolist())
             labels_pred_score.extend(pred_score.tolist())
-            import pdb;pdb.set_trace()
     
     print('所有预测的样本数：', all_count)
     print('score 条数:', len(labels_pred))
