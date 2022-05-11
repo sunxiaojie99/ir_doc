@@ -27,6 +27,7 @@ def infer(h_params):
     device = h_params.device
     debug = h_params.debug
     save_path = h_params.save_path
+    all_score_save_path = h_params.all_score_save_path
 
     batch_size = h_params.batch_size
     max_seq_len = h_params.max_seq_len
@@ -50,6 +51,7 @@ def infer(h_params):
 
     labels_pred = []
     labels_pred_score = []
+    all_pred_score = []
     all_count = 0
 
     with torch.no_grad():
@@ -65,15 +67,23 @@ def infer(h_params):
             logits = torch.softmax(logits, 1)
             # [batch_size, label_set_size]
             index = torch.arange(0, bs, 1)
-            pred_tag_ids = logits.argmax(1)
-            pred_score = logits[index, pred_tag_ids]
+            pred_tag_ids = logits.argmax(1)  # 0/1，看看谁最大
+            pred_score = logits[index, pred_tag_ids]  # 每个预测的分数
+            pred_score = torch.mul(pred_score, pred_tag_ids)  # 对于0的不保留分数
             labels_pred.extend(pred_tag_ids.tolist())
             labels_pred_score.extend(pred_score.tolist())
+            
+            all_pred_score.extend(logits.tolist())  # 保存所有的分数，用于debug..
+            
     
     print('所有预测的样本数：', all_count)
     print('score 条数:', len(labels_pred))
     with open(save_path, 'w') as f:
         for p in labels_pred_score:
             f.write('{}\n'.format(p))
+    
+    with open(all_score_save_path, 'w') as f:
+        for p in all_pred_score:
+            f.write('{}\t{}\n'.format(p[0], p[1]))
 
 
