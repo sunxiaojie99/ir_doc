@@ -3,13 +3,10 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import absolute_import
-import imp
 
 import json
 import os
-from statistics import mode
 import time
-from sympy import im
 import torch
 from tqdm import tqdm
 from torch.utils.data import DataLoader
@@ -46,7 +43,7 @@ def infer(h_params):
     
     test_loader = DataLoader(dataset, batch_size=batch_size)
 
-    model = Cross_Train_Model(h_params, is_predict=True)
+    model = Cross_Train_Model(h_params, is_predict=True).to(device)
     model.load_state_dict(torch.load(model_path, map_location=device))
 
     model.eval()
