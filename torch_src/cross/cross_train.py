@@ -64,6 +64,7 @@ def train(h_params):
         pretrained_model_path,
         max_seq_len=max_seq_len,
         do_lower_case=True,
+        shuffle=True,
         debug=debug)
     
     train_loader = DataLoader(dataset, batch_size=batch_size)

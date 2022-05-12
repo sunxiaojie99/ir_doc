@@ -63,7 +63,7 @@ def truncate_seq_pair(tokens_a, tokens_b, max_length):
 
 
 def read_data(data_file_path, tokenizer, q_max_seq_len,
-              p_max_seq_len, label_map_config=None, is_dubug=False):
+              p_max_seq_len, label_map_config=None, is_dubug=False, shuffle=False):
     """query null para_text_pos null para_text_neg null
     return:
     ['token_ids_q', 'text_type_ids_q', 'position_ids_q', \
@@ -87,6 +87,8 @@ def read_data(data_file_path, tokenizer, q_max_seq_len,
             lines = f.readlines()[:128]
         else:
             lines = f.readlines()
+        if shuffle:
+            np.random.shuffle(lines)
         begin_time = time.time()
         count = 0
         for l in tqdm(lines):
@@ -167,7 +169,8 @@ class MyDataset(Dataset):
                  q_max_seq_len=128,
                  p_max_seq_len=512,
                  do_lower_case=True,
-                 debug=False):
+                 debug=False,
+                 shuffle=False):
         self.q_max_seq_len = q_max_seq_len
         self.p_max_seq_len = p_max_seq_len
         self.tokenizer = FullTokenizer(
@@ -177,7 +180,7 @@ class MyDataset(Dataset):
         self.vocab = self.tokenizer.vocab
 
         self.token_ids_q_list, self.token_ids_p_pos_list, self.token_ids_p_neg_list = read_data(
-            data_file_path, self.tokenizer, q_max_seq_len, p_max_seq_len, is_dubug=debug)
+            data_file_path, self.tokenizer, q_max_seq_len, p_max_seq_len, is_dubug=debug, shuffle=shuffle)
 
         if debug:
             print('dug!!!!')

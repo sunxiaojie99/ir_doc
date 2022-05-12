@@ -40,6 +40,7 @@ def infer(h_params):
         pretrained_model_path,
         max_seq_len=max_seq_len,
         do_lower_case=True,
+        shuffle=False,
         debug=debug)
     
     test_loader = DataLoader(dataset, batch_size=batch_size)

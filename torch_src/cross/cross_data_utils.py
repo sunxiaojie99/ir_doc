@@ -28,7 +28,7 @@ def truncate_seq_pair(tokens_a, tokens_b, max_length):
             tokens_b.pop()
 
 
-def read_data(data_file_path, tokenizer, max_seq_len, is_dubug=False):
+def read_data(data_file_path, tokenizer, max_seq_len, is_dubug=False, shuffle=False):
     """query null para_text label
     return:
     token_ids_q_list, token_ids_p_list
@@ -44,6 +44,8 @@ def read_data(data_file_path, tokenizer, max_seq_len, is_dubug=False):
             lines = f.readlines()[:128]
         else:
             lines = f.readlines()
+        if shuffle:
+            np.random.shuffle(lines)
         for l in tqdm(lines):
             line = l.rstrip('\n').split('\t')
             assert len(line) == 4, line
@@ -74,6 +76,7 @@ class CrossDataset(Dataset):
                  pretrained_model_path,
                  max_seq_len=512,
                  do_lower_case=True,
+                 shuffle=False,
                  debug=False):
         self.max_seq_len = max_seq_len
         self.tokenizer = FullTokenizer(
@@ -81,9 +84,10 @@ class CrossDataset(Dataset):
         self.bert_tokenizer = transformers.BertTokenizer.from_pretrained(
             pretrained_model_path)
         self.vocab = self.tokenizer.vocab
+        self.shuffle = shuffle
 
         self.token_ids_query_list, self.token_ids_p_list, self.labels = read_data(
-            data_file_path, self.tokenizer, max_seq_len, is_dubug=debug)
+            data_file_path, self.tokenizer, max_seq_len, is_dubug=debug, shuffle=shuffle)
 
         if debug:
             print('dug!!!!')

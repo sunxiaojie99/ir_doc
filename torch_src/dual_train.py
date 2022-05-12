@@ -66,6 +66,7 @@ def train(h_params):
         q_max_seq_len=q_max_seq_len,
         p_max_seq_len=p_max_seq_len,
         do_lower_case=True,
+        shuffle=True,
         debug=debug)
     
     train_loader = DataLoader(dataset, batch_size=batch_size)
