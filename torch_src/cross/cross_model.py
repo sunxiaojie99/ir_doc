@@ -34,8 +34,7 @@ class Cross_Train_Model(nn.Module):
                                   attention_mask)  # sequence_output, pooled_output, (hidden_states), (attentions)
         cls_feats = outputs[1]  # [bs, emb]
 
-        if self.is_predict is False:  # only in train
-            cls_feats = self.drop(cls_feats)
+        cls_feats = self.drop(cls_feats)
         
         logits = self.fc(cls_feats)  # [bs, 2]
 

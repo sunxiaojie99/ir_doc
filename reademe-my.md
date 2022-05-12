@@ -61,7 +61,7 @@ MODEL_OUTPUT="output/res.top50"
 python metric/convert_recall_res_to_json.py $QUERY2ID $PARA2ID $MODEL_OUTPUT 50
 ```
 
-4.转换官方召回50到提交格式
+4.【可忽略！测试eval脚本用的】转换官方召回50到提交格式
 ```
 ID_MAP="dureader-retrieval-baseline-dataset/auxiliary/dev.retrieval.top50.res.id_map.tsv"
 python metric/convert_offical_recall_res_to_json.py $ID_MAP 50
