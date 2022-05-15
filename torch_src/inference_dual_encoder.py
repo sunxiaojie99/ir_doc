@@ -3,13 +3,11 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import absolute_import
-import imp
 
 import json
 import os
 from statistics import mode
 import time
-from sympy import im
 import torch
 from tqdm import tqdm
 from torch.utils.data import DataLoader
@@ -20,7 +18,7 @@ from sklearn import metrics
 import faiss
 
 from .dual_model import Dual_Train_Model
-from .data_utils import InferDataset
+from .data_utils import InferDataset, make_inference_dataset
 
 
 def build_engine(para_emb_list, dim):
@@ -70,6 +68,8 @@ def infer(h_params):
         p_max_seq_len=p_max_seq_len,
         do_lower_case=True,
         debug=debug)
+
+    # dataset = make_inference_dataset(test_set, vocab_path, pretrained_model_path, q_max_seq_len, p_max_seq_len, do_lower_case=True)
 
     data_loader = DataLoader(dataset, batch_size=batch_size)
 
