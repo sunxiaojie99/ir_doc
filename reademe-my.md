@@ -133,7 +133,7 @@ python metric/evaluation.py $REFERENCE_FIEL $PREDICTION_FILE
 # ref
 - https://github.com/jingtaozhan/RepBERT-Index/blob/master/dataset.py
 - [pytorch 矩阵乘法](https://zhuanlan.zhihu.com/p/100069938)
-- [paddle/pytorch对照表](https://www.i4k.xyz/article/qq_32097577/112383360)
+- [paddle/pytorch对照表](https://www.paddlepaddle.org.cn/documentation/docs/zh/guides/model_convert/pytorch_api_mapping_cn.html)
 - [faiss 教程](https://zhuanlan.zhihu.com/p/320653340)
 - [比赛链接](https://aistudio.baidu.com/aistudio/competition/detail/157/0/introduction)
 - [损失函数技术总结及Pytorch使用示例](https://zhuanlan.zhihu.com/p/383997503)
