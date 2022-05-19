@@ -130,6 +130,14 @@ python metric/evaluation.py $REFERENCE_FIEL $PREDICTION_FILE
 召回的训练集，889580，80多w条
 精排的训练集，1111975，100多w条
 
+# result
+
+待评测的query数量： 2000
+在前10找到答案的query数量： 1673
+在前50找到答案的query数量： 1835
+用前10找到答案的做分母的mrr： 0.7295092932570516
+{"MRR@10": 0.6102345238095237, "QueriesRanked": 2000, "recall@1": 0.4955, "recall@50": 0.9175}
+
 # ref
 - https://github.com/jingtaozhan/RepBERT-Index/blob/master/dataset.py
 - [pytorch 矩阵乘法](https://zhuanlan.zhihu.com/p/100069938)

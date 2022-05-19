@@ -3,6 +3,7 @@ torch_pretrained_models/
 finetuned-models/
 dureader-retrieval-baseline-dataset/
 output/
+output_cp/
 dureader-retrieval-baseline-dataset.tar.gz
 saved_models/
 torch_src/__pycache__/*

@@ -76,10 +76,14 @@ def train(h_params):
     # if os.path.exists(checkpoint_file):
     #     checkpoint_dict = load_checkpoint(checkpoint_file)
     #     last_epoch = checkpoint_dict['last_epoch'] + 1
-    #     model.load_state_dict(torch.load(model_file))  # 把之前保存的权重加载到现在的模型中
+
+    #     epoch_model_file = os.path.join(checkpoints_dir, 'epoch_{}_cross_params.bin'.format(checkpoint_dict['last_epoch']))
+    #     model.load_state_dict(torch.load(epoch_model_file))  # 把之前保存的权重加载到现在的模型中
     # else:
     #     checkpoint_dict = {}
     #     last_epoch = 0
+    
+    last_epoch = 0
     checkpoint_dict = {}
 
     # 优化器定义
@@ -105,7 +109,7 @@ def train(h_params):
     ema = EMA(model, 0.999)
     ema.register()
 
-    for epoch in tqdm(range(0, epochs)):
+    for epoch in tqdm(range(last_epoch, last_epoch + epochs)):
         print("Epoch: {}".format(epoch))
         model.train()
         step_losses = []
