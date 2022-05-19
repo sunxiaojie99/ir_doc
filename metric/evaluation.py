@@ -105,11 +105,15 @@ def compute_metrics(qids_to_relevant_passageids, qids_to_ranked_candidate_passag
     all_scores = {}
     MRR = 0
     qids_with_relevant_passages = 0
+    
     ranking = []
+    ranking_qid_2_idx_dict = {}
+    ranking_qid_2_idx_dict_top_10 = {}
+    not_find_qid = []
     recall_q_top1 = set()
     recall_q_top50 = set()
     recall_q_all = set() # 有有效召回的query的数量
-
+    print('待评测的query数量：', len(qids_to_ranked_candidate_passages))
     for qid in qids_to_ranked_candidate_passages: # 枚举所有query
         if qid in qids_to_relevant_passageids: # qid存在
             ranking.append(0)
@@ -117,6 +121,7 @@ def compute_metrics(qids_to_relevant_passageids, qids_to_ranked_candidate_passag
             candidate_pid = qids_to_ranked_candidate_passages[qid] # 模型的pid list
             for i in range(0, MaxMRRRank): # mmr@10
                 if candidate_pid[i] in target_pid: # 如果在标准答案中
+                    ranking_qid_2_idx_dict_top_10[qid] = i
                     MRR += 1.0 / (i + 1) # 在参考答案中的位置倒数
                     ranking.pop()
                     ranking.append(i + 1) # 只记录在模型预测的pid中排在最前面的在标准答案中的位置
@@ -125,12 +130,19 @@ def compute_metrics(qids_to_relevant_passageids, qids_to_ranked_candidate_passag
                 if pid in target_pid: # 如果在标准答案中
                     recall_q_all.add(qid)
                     if i < 50:
+                        ranking_qid_2_idx_dict[qid] = i
                         recall_q_top50.add(qid)
                     if i == 0:
                         recall_q_top1.add(qid)
                     break # 只记录一个pid
+            if qid not in ranking_qid_2_idx_dict:
+                not_find_qid.append(qid)
     if len(ranking) == 0:
         raise IOError("No matching QIDs found. Are you sure you are scoring the evaluation set?")
+
+    print('在前10找到答案的query数量：', len(ranking_qid_2_idx_dict_top_10))
+    print('在前50找到答案的query数量：', len(ranking_qid_2_idx_dict))
+    print('用前10找到答案的做分母的mrr：', MRR / len(ranking_qid_2_idx_dict_top_10))
 
     MRR = MRR / len(qids_to_relevant_passageids)  # 除以query的个数
     recall_top1 = len(recall_q_top1) * 1.0 / len(qids_to_relevant_passageids) # 在前1召回正确的qid num/所有qid num
@@ -141,7 +153,7 @@ def compute_metrics(qids_to_relevant_passageids, qids_to_ranked_candidate_passag
     all_scores["recall@50"] = recall_top50
     # all_scores["recall@all"] = recall_all
     all_scores['QueriesRanked'] = len(qids_to_ranked_candidate_passages)
-    return all_scores
+    return all_scores, ranking_qid_2_idx_dict, ranking_qid_2_idx_dict_top_10, not_find_qid
 
 
 def compute_metrics_from_files(path_to_reference, path_to_candidate, perform_checks=True):
@@ -168,12 +180,23 @@ def main():
         print('Usage: result_eval.py <reference ranking> <candidate ranking>')
         exit()
 
-    metrics = compute_metrics_from_files(path_to_reference, path_to_candidate)
+    metrics, ranking_qid_2_idx_dict, ranking_qid_2_idx_dict_top_10, not_find_qid = compute_metrics_from_files(path_to_reference, path_to_candidate)
 
     result = dict()
     for metric in sorted(metrics):
         result[metric] = metrics[metric]
     result_json = json.dumps(result)
+    
+
+    with open('output/eval_q_rank.json', 'w', encoding='utf-8') as f_out:
+        json.dump(ranking_qid_2_idx_dict, f_out, ensure_ascii=False, indent=2)
+    
+    with open('output/eval_q_rank_mrr10.json', 'w', encoding='utf-8') as f_out:
+        json.dump(ranking_qid_2_idx_dict_top_10, f_out, ensure_ascii=False, indent=2)
+    
+    with open('output/eval_not_find_in50_qid.json', 'w', encoding='utf-8') as f_out:
+        json.dump(not_find_qid, f_out, ensure_ascii=False, indent=2)
+    
     print(result_json)
 
 

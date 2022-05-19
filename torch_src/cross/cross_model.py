@@ -21,6 +21,13 @@ class Cross_Train_Model(nn.Module):
 
         self.bert_model = BertModel.from_pretrained(
             self.pretrained_model_path, config=self.model_config)
+        
+        self.attention = nn.Sequential(
+            nn.Linear(h_params.hidden_size, 512),
+            nn.Tanh(),
+            nn.Linear(512, 1),
+            nn.Softmax(dim=1)
+        )
 
         self.drop = nn.Dropout(p=0.1)
 
@@ -34,9 +41,18 @@ class Cross_Train_Model(nn.Module):
                                   attention_mask)  # sequence_output, pooled_output, (hidden_states), (attentions)
         cls_feats = outputs[1]  # [bs, emb]
 
-        cls_feats = self.drop(cls_feats)
-        
-        logits = self.fc(cls_feats)  # [bs, 2]
+        sequence_ouput = outputs[0]
+        last_layer_hidden_states = outputs.hidden_states[-1]
+        weights = self.attention(last_layer_hidden_states)  # (batch_size, sequence_length, 1)
+
+        #   (batch_size, sequence_length, 1) * (batch_size, sequence_length, embedding_size)
+        #   (batch_size, embedding_size)
+        context_vector = torch.sum(weights * last_layer_hidden_states, dim=1)
+
+        logits = self.fc(context_vector)  # [bs, 2]
+
+        # cls_feats = self.drop(cls_feats)
+        # logits = self.fc(cls_feats)  # [bs, 2]
 
         return logits
 
