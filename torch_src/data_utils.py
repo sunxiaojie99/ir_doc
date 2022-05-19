@@ -10,6 +10,7 @@ import numpy as np
 import random
 import time
 from .tokenization import convert_to_unicode, FullTokenizer
+from datasets import Dataset
 
 here = os.path.dirname(os.path.abspath(__file__))  # 当前文件的目录
 
@@ -161,6 +162,55 @@ def read_dev(data_file_path, tokenizer, q_max_seq_len,
     return token_ids_q_list, token_ids_p_list
 
 
+def make_inference_dataset(data_file_path, vocab_path, pretrained_model_path,
+                 q_max_seq_len=128, p_max_seq_len=512, do_lower_case=True):
+    
+    with open(data_file_path, 'r', encoding='utf8') as f:
+        lines = f.readlines()
+    text_data = {"query": [], "passage": []}
+    for l in tqdm(lines):
+        line = l.rstrip('\n').split('\t')
+        assert len(line) == 4, line
+        query = line[0]
+        passage = line[2]
+        text_data["query"].append(query) 
+        text_data["passage"].append(passage) 
+
+    def encode(examples):
+        query = examples['query']
+        passage = examples['passage']
+
+        query = convert_to_unicode(query)
+        tokens_query = tokenizer.tokenize(query)
+        truncate_seq_pair([], tokens_query, q_max_seq_len-2)
+
+        passage = convert_to_unicode(passage)
+        tokens_passage = tokenizer.tokenize(passage)
+        truncate_seq_pair([], tokens_passage, p_max_seq_len-2)
+        encoded_q = bert_tokenizer.encode_plus(tokens_query, max_length=q_max_seq_len,
+                                                    pad_to_max_length=True, truncation=True)
+        encoded_p = bert_tokenizer.encode_plus(tokens_passage, max_length=p_max_seq_len,
+                                                    pad_to_max_length=True, truncation=True)
+
+        sample = {
+            "token_ids_q": encoded_q['input_ids'],
+            "token_type_ids_q": encoded_q['token_type_ids'],
+            "attention_mask_q": encoded_q['attention_mask'],
+            "token_ids_p": encoded_p['input_ids'],
+            "token_type_ids_p": encoded_p['token_type_ids'],
+            "attention_mask_p": encoded_p['attention_mask']
+        }
+        return sample
+
+    dataset = Dataset.from_dict(text_data)
+    tokenizer = FullTokenizer(vocab_file=vocab_path, do_lower_case=do_lower_case)
+    bert_tokenizer = transformers.BertTokenizer.from_pretrained(pretrained_model_path)
+    dataset = dataset.map(encode, num_proc=5)
+    dataset.set_format(type='torch', columns=['token_ids_q', 'token_type_ids_q', 'attention_mask_q', 
+                                                'token_ids_p', 'token_type_ids_p', 'attention_mask_p'])
+    return dataset
+
+
 class MyDataset(Dataset):
     def __init__(self,
                  data_file_path,
@@ -282,7 +332,7 @@ class InferDataset(Dataset):
         # ['[CLS]', '微', '信', '分', '享', '链', '接', '打', '开', 'app', '[SEP]']
         # ['微', '信', '分', '享', '链', '接', '打', '开', 'app']
         sample_token_ids_p = self.token_ids_p_list[idx]
-        encoded_p = self.bert_tokenizer.encode_plus(sample_token_ids_p, max_length=self.q_max_seq_len,
+        encoded_p = self.bert_tokenizer.encode_plus(sample_token_ids_p, max_length=self.p_max_seq_len,
                                                     pad_to_max_length=True, truncation=True)
 
         sample = {
