@@ -64,6 +64,7 @@ python metric/convert_recall_res_to_json.py $QUERY2ID $PARA2ID $MODEL_OUTPUT 50
 4.【可忽略！测试eval脚本用的】转换官方召回50到提交格式
 ```
 ID_MAP="dureader-retrieval-baseline-dataset/auxiliary/dev.retrieval.top50.res.id_map.tsv"
+ID_MAP="dureader-retrieval-baseline-dataset/dual_res_top50/test1.dual.top50.tsv"
 python metric/convert_offical_recall_res_to_json.py $ID_MAP 50
 ```
 
@@ -130,13 +131,38 @@ python metric/evaluation.py $REFERENCE_FIEL $PREDICTION_FILE
 召回的训练集，889580，80多w条
 精排的训练集，1111975，100多w条
 
-# result
+# dev result
 
+```
+torch:
 待评测的query数量： 2000
 在前10找到答案的query数量： 1673
 在前50找到答案的query数量： 1835
 用前10找到答案的做分母的mrr： 0.7295092932570516
 {"MRR@10": 0.6102345238095237, "QueriesRanked": 2000, "recall@1": 0.4955, "recall@50": 0.9175}
+
+paddle:
+待评测的query数量： 2000
+在前10找到答案的query数量： 1763
+在前50找到答案的query数量： 1835
+用前10找到答案的做分母的mrr： 0.8263280033132554
+{"MRR@10": 0.7284081349206347, "QueriesRanked": 2000, "recall@1": 0.641, "recall@50": 0.9175}
+```
+
+# test1 result
+
+> recall@50 是召回模型（如果在召回50个的情况下）给出的能力上限
+
+现在的第一名：
+```
+{"MRR@10": 0.8304, "recall@1": 0.755, "recall@50": 0.9755}
+```
+
+
+```
+paddle offical_recall:
+{"MRR@10": 0.6198, "recall@1": 0.5135, "recall@50": 0.927}
+```
 
 # ref
 - https://github.com/jingtaozhan/RepBERT-Index/blob/master/dataset.py

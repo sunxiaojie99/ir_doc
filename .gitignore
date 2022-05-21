@@ -9,6 +9,7 @@ saved_models/
 torch_src/__pycache__/*
 torch_src/__pycache__/
 .idea/
+log/
 **/__pycache__
 
 # Build and Release Folders
