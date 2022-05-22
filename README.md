@@ -103,6 +103,14 @@ TRAIN_SET=dureader-retrieval-baseline-dataset/train/cross.train.demo.tsv
 MODEL_PATH=pretrained-models/ernie_base_1.0_CN/params
 sh script/run_cross_encoder_train.sh $TRAIN_SET $MODEL_PATH 3 4
 ```
+
+```
+export CUDA_VISIBLE_DEVICES=0
+TRAIN_SET=dureader-retrieval-baseline-dataset/train/cross.train.tsv
+MODEL_PATH=pretrained-models/ernie_base_1.0_CN/params
+sh script/run_cross_encoder_train.sh $TRAIN_SET $MODEL_PATH 3 1
+nohup sh script/run_cross_encoder_train.sh $TRAIN_SET $MODEL_PATH 3 1 > process_corss_train_paddle.log 2>&1 &
+```
 This will train on the demo data for 3 epochs with 4 gpu cars (a few minutes on 4*V100). The training log will be saved into `log/`. The model parameters will be saved into `output/`. To start the training on the full dataset, please set `TRAIN_SET=dureader-retrieval-baseline-dataset/train/cross.train.tsv`
 
 

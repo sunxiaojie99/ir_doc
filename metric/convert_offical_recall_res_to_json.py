@@ -7,7 +7,8 @@ id_f = sys.argv[1]  # dureader-retrieval-baseline-dataset/auxiliary/dev.retrieva
 topk = int(sys.argv[2])
 qprank = defaultdict(list)
 
-outputf = 'output/offical_dual_res.json'
+# outputf = 'output/offical_dual_res.json'
+outputf = 'output/offical_dual_res_test1.json'
 
 with open(id_f, 'r') as f:
     for line in f:

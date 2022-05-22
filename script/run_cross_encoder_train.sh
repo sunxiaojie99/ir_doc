@@ -29,9 +29,14 @@ fi
 lr=1e-5
 batch_size=32
 train_exampls=`cat $TRAIN_SET | wc -l`
-save_steps=$[$train_exampls/$batch_size/$node]
-data_size=$[$save_steps*$batch_size*$node]
-new_save_steps=$[$save_steps*$epoch/2]
+# save_steps=$[$train_exampls/$batch_size/$node]
+# data_size=$[$save_steps*$batch_size*$node]
+# new_save_steps=$[$save_steps*$epoch/2]
+
+save_steps=`echo "${train_exampls}/${batch_size}/${node}" |bc`
+data_size=`echo "${save_steps}*${batch_size}*${node}" |bc`
+new_save_steps=`echo "${save_steps}*${epoch}/2" |bc`
+
 
 python -m paddle.distributed.launch \
     --log_dir log \
