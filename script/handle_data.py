@@ -5,31 +5,6 @@ import csv
 
 here = os.path.dirname(os.path.abspath(__file__))
 
-def draw(dic, name): #输入样本数量统计字典
-    import numpy as np
-    import matplotlib.pyplot as plt
-    from matplotlib.ticker import MaxNLocator
-    from collections import namedtuple
-
-    fig, ax = plt.subplots()
-
-    n_groups = len(dic) #列数
-    index=[]
-    data=[]
-    for i in sorted (dic) : 
-        index.append(i)
-        data.append(dic[i])
-
-    bar_width = 0.2 #每条柱状的宽度
-    rects1 = ax.bar(index, data, bar_width,label='length') #绘制柱状图
-
-    ax.legend() #绘制图例（即右上角的方框）
-
-    fig.tight_layout()
-    plt.show()
-    fig.savefig(name, bbox_inches='tight')
-
-
 def generate_text_from_id(res_text_file, res_id_file, query_id2text_map_file, file_name_list, passage_index2id):
     """
     res_text_file: 输出文件，每行4个元素，用\t链接，'\t'.join([query, '', para, '0']) eg, query null para_text label
@@ -84,6 +59,8 @@ def stat_cross(cross_train_file):
     print(cross_train_file)
     para_len2count = {}
     query_len2count = {}
+    pos_para_len2count = {}
+    pos_query_len2count = {}
     max_para = 0
     min_para = 2000
     with open(cross_train_file, 'r', encoding='utf8') as f:
@@ -108,11 +85,102 @@ def stat_cross(cross_train_file):
                 para_len2count[len(passage)] = 1
             else:
                 para_len2count[len(passage)] += 1
+            
+            if int(label) == 1:
+                if len(query) not in pos_query_len2count:
+                    pos_query_len2count[len(query)] = 1
+                else:
+                    pos_query_len2count[len(query)] += 1
+                if len(passage) not in pos_para_len2count:
+                    pos_para_len2count[len(passage)] = 1
+                else:
+                    pos_para_len2count[len(passage)] += 1
+
             max_para = max(max_para, len(passage))
             min_para = min(min_para, len(passage))
     print('pos_cnt:{}, neg_cnt:{}, all_cnt:{}'.format(pos_cnt, neg_cnt, all_cnt))
 
-    file = open('passage_stat.csv','w',encoding='utf-8',newline='')
+    file = open('query_stat.csv','w',encoding='utf-8',newline='')
+    csv_writer= csv.DictWriter(file,fieldnames=['query_len','cnt'])
+    csv_writer.writeheader()
+    key=list(query_len2count.keys())
+    value =list(query_len2count.values())
+    for i in range(len(key)):
+        dic = {       #字典类型
+            'query_len':key[i],
+            'cnt':value[i]
+        }
+        csv_writer.writerow(dic)   #数据写入csv文件
+    file.close()
+    
+
+def stat_dual(dual_train_file):
+    q2p = {}  # 每个q有多少个<p+,q->
+    qp2neg = {}  # 每个<q,p+>有多少个q-
+    para_len2count = {}
+    query_len2count = {}
+    with open(dual_train_file, 'r', encoding='utf-8') as f:
+        lines = f.readlines()
+        for l in tqdm(lines):
+            line = l.rstrip('\n').split('\t')
+            query = line[0]
+            p_pos = line[2]
+            p_neg = line[4]
+            if query+'@'+p_pos not in qp2neg:
+                qp2neg[query+'@'+p_pos] = 1
+            else:
+                qp2neg[query+'@'+p_pos] += 1
+            if query not in q2p:
+                q2p[query] = 1
+            else:
+                q2p[query] += 1
+            
+            if len(query) not in query_len2count:
+                query_len2count[len(query)] = 1
+            else:
+                query_len2count[len(query)] += 1
+            if len(p_pos) not in para_len2count:
+                para_len2count[len(p_pos)] = 1
+            else:
+                para_len2count[len(p_pos)] += 1
+            if len(p_neg) not in para_len2count:
+                para_len2count[len(p_neg)] = 1
+            else:
+                para_len2count[len(p_neg)] += 1
+    
+    q2p_num = {}
+    qp2neg_num = {}
+    for k, num in q2p.items():
+        if num not in q2p_num:
+            q2p_num[num] = 1
+        else:
+            q2p_num[num] += 1
+    
+    for num in qp2neg.values():
+        if num not in qp2neg_num:
+            qp2neg_num[num] = 1
+        else:
+            qp2neg_num[num] += 1
+    
+    
+    sort_q2p = sorted(q2p_num.items(), key=lambda x: x[0])
+    print('每个q有多少个<p+,q->:', sort_q2p)
+    print('每个<q,p+>有多少个q-:', qp2neg_num)
+
+    file = open('dual_query_stat.csv','w',encoding='utf-8',newline='')
+    csv_writer= csv.DictWriter(file,fieldnames=['query_len','cnt'])
+    csv_writer.writeheader()
+    key=list(query_len2count.keys())
+    value =list(query_len2count.values())
+    for i in range(len(key)):
+        dic = {       #字典类型
+            'query_len':key[i],
+            'cnt':value[i]
+        }
+        csv_writer.writerow(dic)   #数据写入csv文件
+    file.close()
+
+    file = open('dual_passage_stat.csv','w',encoding='utf-8',newline='')
     csv_writer= csv.DictWriter(file,fieldnames=['para_len','cnt'])
     csv_writer.writeheader()
     key=list(para_len2count.keys())
@@ -124,8 +192,11 @@ def stat_cross(cross_train_file):
         }
         csv_writer.writerow(dic)   #数据写入csv文件
     file.close()
-    
 
+
+
+
+# 根据官方召回结果，生成传入cross阶段的数据
 
 # res_text_file = os.path.join(here, '../dureader-retrieval-baseline-dataset/auxiliary/dev.retrieval.top50.res.tsv')
 # res_text_file = os.path.join(here, '../dureader-retrieval-baseline-dataset/dual_res_top50/test1.retrieval_text.top50.res.tsv')
@@ -141,6 +212,10 @@ def stat_cross(cross_train_file):
 # generate_text_from_id(res_text_file, res_id_file, query_id2text_map_file, file_name_list, passage_index2id)
 
 
-# 统计正负样本比例
-cross_train_file=os.path.join(here, '../dureader-retrieval-baseline-dataset/train/cross.train.tsv')
-stat_cross(cross_train_file)
+# 统计cross正负样本比例
+# cross_train_file=os.path.join(here, '../dureader-retrieval-baseline-dataset/train/cross.train.tsv')
+# stat_cross(cross_train_file)
+
+# 统计dual
+dual_train_file=os.path.join(here, '../dureader-retrieval-baseline-dataset/train/dual.train.tsv')
+stat_dual(dual_train_file)
