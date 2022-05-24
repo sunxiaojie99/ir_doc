@@ -11,6 +11,10 @@ torch_src/__pycache__/
 .idea/
 log/
 **/__pycache__
+*.log
+output*/
+*.csv
+dureader_retrieval-data/
 
 # Build and Release Folders
 bin-debug/

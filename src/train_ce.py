@@ -245,10 +245,10 @@ def main(args):
                     train_exe.run(fetch_list=[], program=train_program)
                     continue
     
-                if steps % args.skip_steps != 0:
+                if steps % args.skip_steps != 0:  # skip_steps=10, 每10个batch才进行一次判断
                     train_exe.run(fetch_list=[], program=train_program)
     
-                else:
+                else:  # 每10个batch，即320个样本输出一次
                     outputs = evaluate(
                         train_exe,
                         train_program,
@@ -270,9 +270,9 @@ def main(args):
                     used_time = time_end - time_begin
     
                     log.info(
-                        "epoch: %d, progress: %d/%d, step: %d, ave loss: %f, "
+                        "epoch: %d, step: %d, progress: %d/%d, step: %d, ave loss: %f, "
                         "ave acc: %f, speed: %f steps/s" %
-                        (current_epoch, current_example * dev_count, num_train_examples,
+                        (current_epoch, steps, current_example * dev_count, num_train_examples,
                          steps, outputs["loss"], outputs["accuracy"],
                          args.skip_steps / used_time))
                     ce_info.append(
@@ -281,6 +281,7 @@ def main(args):
                     time_begin = time.time()
     
                 if steps % args.save_steps == 0:
+                    log.info('save model in step:{}'.format(steps))
                     save_path = os.path.join(args.checkpoints,
                                              "step_" + str(steps))
                     fluid.io.save_persistables(exe, save_path, fleet._origin_program)
