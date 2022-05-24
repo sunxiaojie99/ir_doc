@@ -129,24 +129,47 @@ python metric/evaluation.py $REFERENCE_FIEL $PREDICTION_FILE
 8096668 个文章,800多w个文章
 
 召回的训练集，889580，80多w条
+
 精排的训练集，1111975，100多w条
+pos_cnt:222395, neg_cnt:889580, all_cnt:1111975
 
 # dev result
 
 ```
-torch:
+torch baseline rank(epoch=3):
 待评测的query数量： 2000
 在前10找到答案的query数量： 1673
 在前50找到答案的query数量： 1835
 用前10找到答案的做分母的mrr： 0.7295092932570516
 {"MRR@10": 0.6102345238095237, "QueriesRanked": 2000, "recall@1": 0.4955, "recall@50": 0.9175}
 
-paddle:
+torch(epoch=2)
+待评测的query数量： 2000
+在前10找到答案的query数量： 1658
+在前50找到答案的query数量： 1835
+用前10找到答案的做分母的mrr： 0.7464154077392918
+{"MRR@10": 0.6187783730158729, "QueriesRanked": 2000, "recall@1": 0.509, "recall@50": 0.9175}
+
+torch(epoch=1)
+待评测的query数量： 2000
+在前10找到答案的query数量： 1604
+在前50找到答案的query数量： 1835
+用前10找到答案的做分母的mrr： 0.677933638126906
+{"MRR@10": 0.5437027777777785, "QueriesRanked": 2000, "recall@1": 0.421, "recall@50": 0.9175}
+
+paddle offical rank:
 待评测的query数量： 2000
 在前10找到答案的query数量： 1763
 在前50找到答案的query数量： 1835
 用前10找到答案的做分母的mrr： 0.8263280033132554
 {"MRR@10": 0.7284081349206347, "QueriesRanked": 2000, "recall@1": 0.641, "recall@50": 0.9175}
+
+paddle baseline_ours:
+待评测的query数量： 2000
+在前10找到答案的query数量： 1660
+在前50找到答案的query数量： 1835
+用前10找到答案的做分母的mrr： 0.7774780072671645
+{"MRR@10": 0.6453067460317465, "QueriesRanked": 2000, "recall@1": 0.543, "recall@50": 0.9175}
 ```
 
 # test1 result
@@ -162,6 +185,9 @@ paddle:
 ```
 paddle offical_recall:
 {"MRR@10": 0.6198, "recall@1": 0.5135, "recall@50": 0.927}
+
+paddle offical_rerank:
+{"MRR@10": 0.74341, "recall@1": 0.655, "recall@50": 0.927}
 ```
 
 # ref
@@ -171,3 +197,4 @@ paddle offical_recall:
 - [faiss 教程](https://zhuanlan.zhihu.com/p/320653340)
 - [比赛链接](https://aistudio.baidu.com/aistudio/competition/detail/157/0/introduction)
 - [损失函数技术总结及Pytorch使用示例](https://zhuanlan.zhihu.com/p/383997503)
+- [focal loss](https://blog.csdn.net/a486259/article/details/122758621)

@@ -107,11 +107,14 @@ sh script/run_cross_encoder_train.sh $TRAIN_SET $MODEL_PATH 3 4
 ```
 export CUDA_VISIBLE_DEVICES=0
 TRAIN_SET=dureader-retrieval-baseline-dataset/train/cross.train.tsv
-MODEL_PATH=pretrained-models/ernie_base_1.0_CN/params
+MODEL_PATH=output_baseline/step_104248
 sh script/run_cross_encoder_train.sh $TRAIN_SET $MODEL_PATH 3 1
-nohup sh script/run_cross_encoder_train.sh $TRAIN_SET $MODEL_PATH 3 1 > process_corss_train_paddle.log 2>&1 &
+nohup sh script/run_cross_encoder_train.sh $TRAIN_SET $MODEL_PATH 3 1 > process_cross_train_paddle.log 2>&1 &
+
+MODEL_PATH=pretrained-models/ernie_base_1.0_CN/params
+nohup sh script/run_cross_encoder_train.sh $TRAIN_SET $MODEL_PATH 1 1 > process_corss_train_paddle.log 2>&1 &
 ```
-This will train on the demo data for 3 epochs with 4 gpu cars (a few minutes on 4*V100). The training log will be saved into `log/`. The model parameters will be saved into `output/`. To start the training on the full dataset, please set `TRAIN_SET=dureader-retrieval-baseline-dataset/train/cross.train.tsv`
+This will train on the demo data for 3 epochs with 4 gpu cars (a few minutes on 4*V100). The training log will be saved into `log/`. The model parameters will be saved into `output/`. To start the training on the full dataset, please set `TRAIN_SET=dureader-reltrieval-baseline-dataset/train/cross.train.tsv`
 
 
 #### Prediction
@@ -120,8 +123,8 @@ To predict with fine-tuned parameters, (e.g. on the devlopment set), please run 
 ```
 export CUDA_VISIBLE_DEVICES=0
 TEST_SET=dureader-retrieval-baseline-dataset/auxiliary/dev.retrieval.top50.res.tsv
-MODEL_PATH=finetuned-models/cross_params/ 
-sh script/run_cross_encoder_inference.sh $TEST_SET $MODEL_PATH
+MODEL_PATH=output/step_34750
+nohup sh script/run_cross_encoder_inference.sh $TEST_SET $MODEL_PATH > process_corss_infer_paddle_dev.log 2>&1 &
 ```
 TRAIN_SET 是第一个阶段为每个query得到的top-50（更多也可以，会根据精排模型得分，保留前50）检索到的文章，MODEL_PATH是微调后的模型地址
 
@@ -131,6 +134,7 @@ We provide a script to convert the model output to the standard json format for 
 
 ```
 MODEL_OUTPUT="output/dureader-retrieval-baseline-dataset/auxiliary/dev.retrieval.top50.res.tsv.score.0.0"
+MODEL_OUTPUT="output/dev.retrieval.top50.res.tsv.score.0.0_merge"
 ID_MAP="dureader-retrieval-baseline-dataset/auxiliary/dev.retrieval.top50.res.id_map.tsv"
 python metric/convert_rerank_res_to_json.py $MODEL_OUTPUT $ID_MAP 
 ```

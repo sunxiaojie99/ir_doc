@@ -33,9 +33,10 @@ train_exampls=`cat $TRAIN_SET | wc -l`
 # data_size=$[$save_steps*$batch_size*$node]
 # new_save_steps=$[$save_steps*$epoch/2]
 
-save_steps=`echo "${train_exampls}/${batch_size}/${node}" |bc`
-data_size=`echo "${save_steps}*${batch_size}*${node}" |bc`
-new_save_steps=`echo "${save_steps}*${epoch}/2" |bc`
+save_steps=`echo "${train_exampls}/${batch_size}/${node}" |bc`  # 1111975/32=34749.21875 有多少个batch
+data_size=`echo "${save_steps}*${batch_size}*${node}" |bc`  # 34749*32=1111968
+new_save_steps=`echo "${save_steps}*${epoch}/2" |bc`  # 一共有34749*3多个batch， 运行一半保存一下 52123 .5
+# 上面除以几就是保存几份
 
 
 python -m paddle.distributed.launch \

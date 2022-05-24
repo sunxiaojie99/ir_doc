@@ -29,6 +29,10 @@ import paddle.fluid as fluid
 
 from model.ernie import ErnieModel
 
+from paddle import nn
+import paddle
+from paddle.nn import functional as F
+
 log = logging.getLogger(__name__)
 
 def create_model(args,
@@ -90,9 +94,22 @@ def create_model(args,
 
         num_seqs = fluid.layers.create_tensor(dtype='int64')
         ## add focal loss
+        # class_weight=paddle.to_tensor([2, 1])
+        # focal_loss=FocalLoss(reduction='mean',weight=class_weight,gamma=0)
+        # ce_loss_old = paddle.nn.CrossEntropyLoss(reduction='mean',weight=class_weight,axis=-1)
+        # focal_loss_value=focal_loss(logits, labels)
+        # ce_loss_value=ce_loss_old(logits, labels)
+        # softmax_layer = paddle.nn.Softmax()
+        # focal_probs = softmax_layer(logits)
+
         ce_loss, probs = fluid.layers.softmax_with_cross_entropy(
-            logits=logits, label=labels, return_softmax=True)
+            logits=logits, label=labels, return_softmax=True)  # probs:[-1,2]
         loss = fluid.layers.mean(x=ce_loss)
+
+        # print("alpha=[2,1], gamma=0")
+        # print(" FocalLoss:",focal_loss_value,'\n CrossEntropyLoss:',ce_loss_value, '\n no weighted CrossEntropyLoss:', loss)
+        # print("focal_probs:", focal_probs, '\n probs:', probs)
+
         accuracy = fluid.layers.accuracy(
             input=probs, label=labels, total=num_seqs)
         graph_vars = {
@@ -328,3 +345,30 @@ def predict(exe,
     probs = np.concatenate(probs, axis=0).reshape([len(preds), -1])
 
     return qids, preds, probs
+
+ 
+class FocalLoss(nn.Layer):
+    def __init__(self, reduction='mean',weight=None, alpha=None, gamma=2):
+        super().__init__()
+        if weight is not None:
+            alpha=weight
+        self.reduction = reduction
+        # 不能进行reduction运算，需要精确的获取每一个-log(p),并通过torch.exp(-log(p))求的p
+        self.ce_loss_none_alpha = nn.CrossEntropyLoss(reduction="none", soft_label=False, axis=-1)
+        # 不能进行reduction运算，需要将每一个-log(p)与(1-p)^gamma进行精确的相乘
+        self.ce_loss_with_alpha = nn.CrossEntropyLoss(reduction="none", soft_label=False,weight=alpha, axis=-1)
+        self.gamma = gamma
+    # preds:模型的原始输出，没有经过softmax函数处理
+    # target:原始标签数据，没有被转换为独热码
+    def forward(self, preds, target):
+        #计算每个目录类别的loss，即y_ture*log(y_pred)
+        ce_loss = self.ce_loss_none_alpha(preds, target)
+        #难易样本调节,作为梯度调节系数，不需要对 paddle.exp(-ce_loss)=>p进行求导操作
+        easy_diff_adjust=paddle.pow((1 - paddle.exp(-ce_loss)), self.gamma).detach()
+        #计算交叉熵与alpha的乘积
+        alpha_ce_loss = self.ce_loss_with_alpha(preds, target)
+        loss= easy_diff_adjust* alpha_ce_loss
+        return self.reduce_loss(loss,self.reduction)
+    
+    def reduce_loss(self,loss, reduction='mean'):
+        return loss.mean() if reduction=='mean' else loss.sum() if reduction=='sum' else loss
