@@ -42,17 +42,17 @@ class Cross_Train_Model(nn.Module):
         cls_feats = outputs[1]  # [bs, emb]
 
         sequence_ouput = outputs[0]
-        last_layer_hidden_states = outputs.hidden_states[-1]
-        weights = self.attention(last_layer_hidden_states)  # (batch_size, sequence_length, 1)
+        # last_layer_hidden_states = outputs.hidden_states[-1]
+        # weights = self.attention(last_layer_hidden_states)  # (batch_size, sequence_length, 1)
 
         #   (batch_size, sequence_length, 1) * (batch_size, sequence_length, embedding_size)
         #   (batch_size, embedding_size)
-        context_vector = torch.sum(weights * last_layer_hidden_states, dim=1)
+        # context_vector = torch.sum(weights * last_layer_hidden_states, dim=1)
 
-        logits = self.fc(context_vector)  # [bs, 2]
+        # logits = self.fc(context_vector)  # [bs, 2]
 
         # cls_feats = self.drop(cls_feats)
-        # logits = self.fc(cls_feats)  # [bs, 2]
+        logits = self.fc(cls_feats)  # [bs, 2]
 
         return logits
 
