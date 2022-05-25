@@ -52,7 +52,9 @@ def generate_text_from_id(res_text_file, res_id_file, query_id2text_map_file, fi
     f_text.close()
 
 
-def generate_text_from_recall_res(res_text_file, res_id_file, query_id2text_map_file, file_name_list, passage_index2id, option='dev'):
+
+
+def generate_text_from_recall_res(res_text_file, map_file, res_id_file, query_id2text_map_file, file_name_list, passage_index2id, option='dev'):
     """
     res_text_file: 输出文件，每行4个元素，用\t链接，'\t'.join([query, '', para, '0']) eg, query null para_text label
     res_id_file: 读入文件， json格式，qid作为key，value是一个list，里面装着召回的topk个pid
@@ -98,12 +100,15 @@ def generate_text_from_recall_res(res_text_file, res_id_file, query_id2text_map_
         qid2pid_list = json.load(f_in)
 
     f_text = open(res_text_file, 'w', encoding='utf-8')
+    f_map = open(map_file, 'w', encoding='utf-8')
     for qid, pids in qid2pid_list.items():
         for pid in pids:
             q_text = query_id2text_map[qid]
             p_text = passage_id2text_map[pid]
+            f_map.write('\t'.join([qid, pid]) + '\n')
             f_text.write('\t'.join([q_text, '', p_text, '0']) + '\n')
     
+    f_map.close()
     f_text.close()
 
 
@@ -297,6 +302,7 @@ def generate_query_jsonl(query_file, out_put_file, option='dev'):
 
 # 2.根据recall模型的结果 dual_res.json 生成cross的输入结果
 res_text_file = os.path.join(here, '../output/dual_res_for_cross.tsv')
+map_file = os.path.join(here, '../dureader-retrieval-baseline-dataset/auxiliary/dev.retrieval.top100.res.id_map.tsv')
 res_id_file = os.path.join(here, '../output/dual_res.json')
 query_id2text_map_file = os.path.join(here, '../dureader-retrieval-baseline-dataset/dev/q2qid.dev.json')  # dev设置
 # query_id2text_map_file = os.path.join(here, '../dureader-retrieval-baseline-dataset/dureader-retrieval-test1/test1.json')  # test1设置
@@ -307,7 +313,7 @@ file_name_list = [
     os.path.join(here, "../dureader-retrieval-baseline-dataset/passage-collection/part-03")
 ]
 passage_index2id = os.path.join(here, "../dureader-retrieval-baseline-dataset/passage-collection/passage2id.map.json")
-generate_text_from_recall_res(res_text_file, res_id_file, query_id2text_map_file, file_name_list, passage_index2id, option='dev')
+generate_text_from_recall_res(res_text_file, map_file, res_id_file, query_id2text_map_file, file_name_list, passage_index2id, option='dev')
 
 # 3. 统计cross正负样本比例
 # cross_train_file=os.path.join(here, '../dureader-retrieval-baseline-dataset/train/cross.train.tsv')
