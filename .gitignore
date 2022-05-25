@@ -15,7 +15,13 @@ log/
 output*/
 *.csv
 dureader_retrieval-data/
-bm25/
+bm25/collection_jsonl
+bm25/indexes
+bm25/runs
+bm25/*.json
+bm25/*.tsv
+bm25/*.log
+dual_res_top50/
 
 # Build and Release Folders
 bin-debug/

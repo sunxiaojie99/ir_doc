@@ -151,7 +151,7 @@ def compute_metrics(qids_to_relevant_passageids, qids_to_ranked_candidate_passag
     all_scores['MRR@10'] = MRR
     all_scores["recall@1"] = recall_top1
     all_scores["recall@50"] = recall_top50
-    # all_scores["recall@all"] = recall_all
+    all_scores["recall@all"] = recall_all
     all_scores['QueriesRanked'] = len(qids_to_ranked_candidate_passages)
     return all_scores, ranking_qid_2_idx_dict, ranking_qid_2_idx_dict_top_10, not_find_qid
 
