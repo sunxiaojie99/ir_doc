@@ -52,6 +52,61 @@ def generate_text_from_id(res_text_file, res_id_file, query_id2text_map_file, fi
     f_text.close()
 
 
+def generate_text_from_recall_res(res_text_file, res_id_file, query_id2text_map_file, file_name_list, passage_index2id, option='dev'):
+    """
+    res_text_file: 输出文件，每行4个元素，用\t链接，'\t'.join([query, '', para, '0']) eg, query null para_text label
+    res_id_file: 读入文件， json格式，qid作为key，value是一个list，里面装着召回的topk个pid
+
+    """
+    
+    query_id2text_map = {}
+    if option == 'test1':
+        with open(query_id2text_map_file, 'r', encoding='utf-8') as f:
+            lines = f.readlines()
+            for line in lines:
+                l = eval(line.strip())
+                query_id2text_map[l['question_id']] = l['question']
+    elif option == 'dev':
+        with open(query_id2text_map_file, 'r', encoding='utf-8') as f_in:
+            query_text2id_map = json.load(f_in)
+        query_id2text_map = {v:k for k,v in query_text2id_map.items()}
+    else:
+        print('目前只支持dev、test1格式')
+        exit()
+    
+    passage_id2text_map = {}
+
+    with open(passage_index2id, 'r', encoding='utf-8') as f_in:
+        passage_lineidx2id = json.load(f_in)
+    print('原始文章数：', len(passage_lineidx2id))  # 原始文章数： 8096668
+
+    count = 0
+    for file_name in file_name_list:
+        with open(file_name, "r", encoding="utf-8") as f:
+            lines = f.readlines()
+            for l in tqdm(lines):
+                passage_id = passage_lineidx2id[str(count)]  # 获取旧的pid
+                count += 1
+                line = l.strip().split('\t')
+                passage = line[2]
+                assert passage_id not in passage_id2text_map
+                passage_id2text_map[passage_id] = passage
+
+    print('pass_id_map, ', len(passage_id2text_map))
+
+    with open(res_id_file, 'r', encoding='utf-8') as f_in:
+        qid2pid_list = json.load(f_in)
+
+    f_text = open(res_text_file, 'w', encoding='utf-8')
+    for qid, pids in qid2pid_list.items():
+        for pid in pids:
+            q_text = query_id2text_map[qid]
+            p_text = passage_id2text_map[pid]
+            f_text.write('\t'.join([q_text, '', p_text, '0']) + '\n')
+    
+    f_text.close()
+
+
 def stat_cross(cross_train_file):
     pos_cnt = 0
     neg_cnt = 0
@@ -194,9 +249,38 @@ def stat_dual(dual_train_file):
     file.close()
 
 
+def generate_passage_jsonl(file_name_list, passage_index2id, output_file):
+    """生成passage的jsonl格式，用于bm25训练
+    {"id": "doc1", "contents": "contents of doc one."}
+    """
+
+    with open(passage_index2id, 'r', encoding='utf-8') as f_in:
+        passage_lineidx2id = json.load(f_in)
+    print('原始文章数：', len(passage_lineidx2id))  # 原始文章数： 8096668
+
+    count = 0
+
+    f_out = open(output_file, 'w', encoding='utf8')
+    for file_name in file_name_list:
+        with open(file_name, "r", encoding="utf-8") as f:
+            lines = f.readlines()
+            for l in tqdm(lines):
+                passage_id = passage_lineidx2id[str(count)]  # 获取旧的pid
+                count += 1
+                line = l.strip().split('\t')
+                passage = line[2]
+                json.dump({"id": passage_id, "contents": passage}, f_out, ensure_ascii=False)
+                f_out.write('\n')
+    f_out.close()
+
+def generate_query_jsonl(query_file, out_put_file, option='dev'):
+    """
+
+    """
+    pass
 
 
-# 根据官方召回结果，生成传入cross阶段的数据
+# 1. 根据官方召回结果，生成传入cross阶段的数据
 
 # res_text_file = os.path.join(here, '../dureader-retrieval-baseline-dataset/auxiliary/dev.retrieval.top50.res.tsv')
 # res_text_file = os.path.join(here, '../dureader-retrieval-baseline-dataset/dual_res_top50/test1.retrieval_text.top50.res.tsv')
@@ -211,11 +295,31 @@ def stat_dual(dual_train_file):
 # passage_index2id = os.path.join(here, "../dureader-retrieval-baseline-dataset/passage-collection/passage2id.map.json")
 # generate_text_from_id(res_text_file, res_id_file, query_id2text_map_file, file_name_list, passage_index2id)
 
+# 2.根据recall模型的结果 dual_res.json 生成cross的输入结果
+res_text_file = os.path.join(here, '../output/dual_res_for_cross.tsv')
+res_id_file = os.path.join(here, '../output/dual_res.json')
+query_id2text_map_file = os.path.join(here, '../dureader-retrieval-baseline-dataset/dev/q2qid.dev.json')  # dev设置
+# query_id2text_map_file = os.path.join(here, '../dureader-retrieval-baseline-dataset/dureader-retrieval-test1/test1.json')  # test1设置
+file_name_list = [
+    os.path.join(here, "../dureader-retrieval-baseline-dataset/passage-collection/part-00"),
+    os.path.join(here, "../dureader-retrieval-baseline-dataset/passage-collection/part-01"),
+    os.path.join(here, "../dureader-retrieval-baseline-dataset/passage-collection/part-02"),
+    os.path.join(here, "../dureader-retrieval-baseline-dataset/passage-collection/part-03")
+]
+passage_index2id = os.path.join(here, "../dureader-retrieval-baseline-dataset/passage-collection/passage2id.map.json")
+generate_text_from_recall_res(res_text_file, res_id_file, query_id2text_map_file, file_name_list, passage_index2id, option='dev')
 
-# 统计cross正负样本比例
+# 3. 统计cross正负样本比例
 # cross_train_file=os.path.join(here, '../dureader-retrieval-baseline-dataset/train/cross.train.tsv')
 # stat_cross(cross_train_file)
 
-# 统计dual
-dual_train_file=os.path.join(here, '../dureader-retrieval-baseline-dataset/train/dual.train.tsv')
-stat_dual(dual_train_file)
+# 4.统计dual
+# dual_train_file=os.path.join(here, '../dureader-retrieval-baseline-dataset/train/dual.train.tsv')
+# stat_dual(dual_train_file)
+
+# 5. 生成bm25 docs库
+# output_file = os.path.join(here, "../bm25/documents.jsonl")
+# generate_passage_jsonl(file_name_list, passage_index2id, output_file)
+
+# 6. 生成bm25 query文件
+# query_file=os.path.join(here, "../bm25/documents.jsonl")

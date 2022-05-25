@@ -15,6 +15,7 @@ log/
 output*/
 *.csv
 dureader_retrieval-data/
+bm25/
 
 # Build and Release Folders
 bin-debug/
