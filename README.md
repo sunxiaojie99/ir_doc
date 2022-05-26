@@ -122,8 +122,8 @@ To predict with fine-tuned parameters, (e.g. on the devlopment set), please run 
 ```
 export CUDA_VISIBLE_DEVICES=0
 TEST_SET=dureader-retrieval-baseline-dataset/auxiliary/dev.retrieval.top50.res.tsv
-MODEL_PATH=output/step_34750
-nohup sh script/run_cross_encoder_inference.sh $TEST_SET $MODEL_PATH > process_corss_infer_paddle_dev.log 2>&1 &
+MODEL_PATH=finetuned-models/cross_params
+nohup sh script/run_cross_encoder_inference.sh $TEST_SET $MODEL_PATH > process_cross_infer_paddle_dev.log 2>&1 &
 ```
 TRAIN_SET 是第一个阶段为每个query得到的top-50（更多也可以，会根据精排模型得分，保留前50）检索到的文章，MODEL_PATH是微调后的模型地址
 
@@ -143,9 +143,32 @@ Where `MODEL_OUTPUT` represents the output file from the cross-encoder, `ID_MAP`
 
 bm25和model的结果合并评估
 ```
+MODEL_OUTPUT="bm25/dev_bm25_id_map_top500.tsv"
+MODEL_OUTPUT="output/bm25_model_merge_id_map.tsv"
+
+# 测试模型输出的代码
+MODEL_OUTPUT="output/dureader-retrieval-baseline-dataset/auxiliary/dev.retrieval.top50.res.tsv.score.0.0"
+ID_MAP="dureader-retrieval-baseline-dataset/auxiliary/dev.retrieval.top50.res.id_map.tsv"
+python metric/convert_rerank_res_to_json.py $MODEL_OUTPUT $ID_MAP 
+REFERENCE_FIEL="dureader-retrieval-baseline-dataset/dev/dev.json"
+PREDICTION_FILE="output/cross_res_dev.json"
+python metric/evaluation.py $REFERENCE_FIEL $PREDICTION_FILE
+
+# 测试bm25的代码，更改bm25.py中的k , 和model_output
+python bm25/bm25.py
 MODEL_OUTPUT="bm25/dev_bm25_id_map_top50.tsv"
+python metric/convert_rerank_res_to_json_with_qp.py $MODEL_OUTPUT
+REFERENCE_FIEL="dureader-retrieval-baseline-dataset/dev/dev.json"
+PREDICTION_FILE="output/cross_res.json"
+python metric/evaluation.py $REFERENCE_FIEL $PREDICTION_FILE
+
+# 测试merge的代码
+python script/merge_score.py
 MODEL_OUTPUT="output/bm25_model_merge_id_map.tsv"
 python metric/convert_rerank_res_to_json_with_qp.py $MODEL_OUTPUT
+REFERENCE_FIEL="dureader-retrieval-baseline-dataset/dev/dev.json"
+PREDICTION_FILE="output/cross_res.json"
+python metric/evaluation.py $REFERENCE_FIEL $PREDICTION_FILE
 ```
 ## Evaluation
 提供了评估脚本进行评估.

@@ -6,7 +6,7 @@ from collections import defaultdict
 score_f = sys.argv[1]
 id_f = sys.argv[2]
 
-outputf = 'output/cross_res.json'
+outputf = 'output/cross_res_dev.json'
 
 scores = []
 q_ids = []
