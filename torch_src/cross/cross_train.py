@@ -4,6 +4,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import absolute_import
 from curses.ascii import CR
+import imp
 
 import os
 import time
@@ -22,6 +23,7 @@ from ..help_class import RAdam, EMA, set_lr
 from ..data_utils import setup_seed, load_checkpoint, save_checkpoint
 from .cross_data_utils import CrossDataset
 from .cross_model import Cross_Train_Model
+from .Focal_loss import focal_loss
 
 
 here = os.path.dirname(os.path.abspath(__file__))
@@ -98,6 +100,8 @@ def train(h_params):
     scaler = GradScaler()
 
     criterion = torch.nn.CrossEntropyLoss().to(device)
+    # focal_loss(alpha=[1,1],gamma=0, num_classes=2)(logits, label_ids) 等价于 torch.nn.CrossEntropyLoss
+    focal_loss_fn = focal_loss(alpha=[0.5,0.5], gamma=1.2, num_classes=2).to(device)
     running_loss = 0
     
     losses = []
@@ -122,12 +126,13 @@ def train(h_params):
             label_ids = sampled_batched['label_id'].to(device)
             with autocast():
                 logits = model(token_ids, token_type_ids, attention_mask)
-                loss = criterion(logits, label_ids)
+                # loss = criterion(logits, label_ids)
+                loss = focal_loss_fn(logits, label_ids)
             
             pred_tag_ids = logits.argmax(1)
             labels_true.extend(label_ids.tolist())
             labels_pred.extend(pred_tag_ids.tolist())
-
+            acc = metrics.accuracy_score(label_ids.tolist(), pred_tag_ids.tolist())
             running_loss += loss.item()
             step_losses.append(loss.item())
 
@@ -144,8 +149,8 @@ def train(h_params):
             global_step += 1
 
             if global_step % log_steps == 0:
-                print("fold %d ,global step %d, epoch: %d, batch: %d, loss: %.5f, speed: %.2f step/s"
-                        % (1, global_step, epoch, i_batch, np.mean(step_losses),
+                print("fold %d ,global step %d, epoch: %d, batch: %d, loss: %.5f, acc:%.5f, speed: %.2f step/s"
+                        % (1, global_step, epoch, i_batch, np.mean(step_losses), acc,
                             global_step / (time.time() - tic_train),
                             ))
         
