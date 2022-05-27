@@ -113,7 +113,7 @@ def compute_metrics(qids_to_relevant_passageids, qids_to_ranked_candidate_passag
     recall_q_top1 = set()
     recall_q_top50 = set()
     recall_q_all = set() # 有有效召回的query的数量
-    print('待评测的query数量：', len(qids_to_ranked_candidate_passages))
+    # print('待评测的query数量：', len(qids_to_ranked_candidate_passages))
     for qid in qids_to_ranked_candidate_passages: # 枚举所有query
         if qid in qids_to_relevant_passageids: # qid存在
             ranking.append(0)
@@ -142,9 +142,9 @@ def compute_metrics(qids_to_relevant_passageids, qids_to_ranked_candidate_passag
     if len(ranking) == 0:
         raise IOError("No matching QIDs found. Are you sure you are scoring the evaluation set?")
 
-    print('在前10找到答案的query数量：', len(ranking_qid_2_idx_dict_top_10))
-    print('在前50找到答案的query数量：', len(ranking_qid_2_idx_dict))
-    print('用前10找到答案的做分母的mrr：', MRR / len(ranking_qid_2_idx_dict_top_10))
+    # print('在前10找到答案的query数量：', len(ranking_qid_2_idx_dict_top_10))
+    # print('在前50找到答案的query数量：', len(ranking_qid_2_idx_dict))
+    # print('用前10找到答案的做分母的mrr：', MRR / len(ranking_qid_2_idx_dict_top_10))
 
     MRR = MRR / len(qids_to_relevant_passageids)  # 除以query的个数
     recall_top1 = len(recall_q_top1) * 1.0 / len(qids_to_relevant_passageids) # 在前1召回正确的qid num/所有qid num
@@ -199,7 +199,7 @@ def main():
     with open('output/eval_not_find_in50_qid.json', 'w', encoding='utf-8') as f_out:
         json.dump(not_find_qid, f_out, ensure_ascii=False, indent=2)
     
-    print(result_json)
+    print(str(result['MRR@10'])+'-'+str(result['recall@50']))
     return result['MRR@10']
 
 

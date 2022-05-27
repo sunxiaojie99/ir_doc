@@ -15,7 +15,7 @@ fi
 
 TASK_DATA=$1
 MODEL_PATH=$2
-batch_size=384
+batch_size=8
 
 if [ ! -d output ]; then
     mkdir output

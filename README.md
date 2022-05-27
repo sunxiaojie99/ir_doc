@@ -114,7 +114,6 @@ nohup sh script/run_cross_encoder_train.sh $TRAIN_SET $MODEL_PATH 3 1 > process_
 export CUDA_VISIBLE_DEVICES=0
 TRAIN_SET=dureader-retrieval-baseline-dataset/train/cross.train.tsv
 MODEL_PATH=output_baseline/step_104248
-sh script/run_cross_encoder_train.sh $TRAIN_SET $MODEL_PATH 3 1
 nohup sh script/run_cross_encoder_train.sh $TRAIN_SET $MODEL_PATH 3 1 > process_cross_train_paddle.log 2>&1 &
 
 MODEL_PATH=pretrained-models/ernie_base_1.0_CN/params
@@ -139,8 +138,8 @@ Where `TEST_SET` is the top-50 retrieved passages for each query from step 1, `M
 We provide a script to convert the model output to the standard json format for evaluation. To preform the conversion:
 
 ```
-MODEL_OUTPUT="output/dureader-retrieval-baseline-dataset/auxiliary/dev.retrieval.top50.res.tsv.score.0.0"
-MODEL_OUTPUT="output/dev.retrieval.top50.res.tsv.score.0.0_merge"
+MODEL_OUTPUT="output_baseline/dureader-retrieval-baseline-dataset/auxiliary/dev.retrieval.top50.res.tsv.score.0.0"
+MODEL_OUTPUT="output/dev.retrieval.top50.res.tsv.score.0.0_merge" 
 ID_MAP="dureader-retrieval-baseline-dataset/auxiliary/dev.retrieval.top50.res.id_map.tsv"
 python metric/convert_rerank_res_to_json.py $MODEL_OUTPUT $ID_MAP 
 ```
@@ -148,6 +147,35 @@ MODEL_OUTPUT是cross-encoder的输出文件，ID_MAP是query和passage的id。
 
 Where `MODEL_OUTPUT` represents the output file from the cross-encoder, `ID_MAP` is the mapping file which maps the query and passages to their original IDs. The output json file will be saved in `output/cross_res.json`.
 
+bm25和model的结果合并评估
+```
+MODEL_OUTPUT="bm25/dev_bm25_id_map_top500.tsv"
+MODEL_OUTPUT="output/bm25_model_merge_id_map.tsv"
+
+# 测试模型输出的代码
+MODEL_OUTPUT="output/dureader-retrieval-baseline-dataset/auxiliary/dev.retrieval.top50.res.tsv.score.0.0"
+ID_MAP="dureader-retrieval-baseline-dataset/auxiliary/dev.retrieval.top50.res.id_map.tsv"
+python metric/convert_rerank_res_to_json.py $MODEL_OUTPUT $ID_MAP 
+REFERENCE_FIEL="dureader-retrieval-baseline-dataset/dev/dev.json"
+PREDICTION_FILE="output/cross_res_dev.json"
+python metric/evaluation.py $REFERENCE_FIEL $PREDICTION_FILE
+
+# 测试bm25的代码，更改bm25.py中的k , 和model_output
+python bm25/bm25.py
+MODEL_OUTPUT="bm25/dev_bm25_id_map_top50.tsv"
+python metric/convert_rerank_res_to_json_with_qp.py $MODEL_OUTPUT
+REFERENCE_FIEL="dureader-retrieval-baseline-dataset/dev/dev.json"
+PREDICTION_FILE="output/cross_res.json"
+python metric/evaluation.py $REFERENCE_FIEL $PREDICTION_FILE
+
+# 测试merge的代码
+python script/merge_score.py
+MODEL_OUTPUT="output/bm25_model_merge_id_map.tsv"
+python metric/convert_rerank_res_to_json_with_qp.py $MODEL_OUTPUT
+REFERENCE_FIEL="dureader-retrieval-baseline-dataset/dev/dev.json"
+PREDICTION_FILE="output/cross_res.json"
+python metric/evaluation.py $REFERENCE_FIEL $PREDICTION_FILE
+```
 ## Evaluation
 提供了评估脚本进行评估.
 
