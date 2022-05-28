@@ -76,9 +76,8 @@ def merge_bm25_and_model(bm25_id_map_file, model_id_map_file, model_score_file, 
                 qid_pid2score[qid + '\t' + pid] = {'model_score': model_score}
             else:  # 在的话就加上model的分数
                 qid_pid2score[qid + '\t' + pid]['model_score'] = model_score
-    
     m_cof = 1
-    bm_cof = 0
+    bm_cof = 0.0006
     print('m_cof:{},bm_cof:{}'.format(m_cof, bm_cof))
     f_out = open(out_put_file, 'w', encoding='utf8')
     
@@ -86,12 +85,15 @@ def merge_bm25_and_model(bm25_id_map_file, model_id_map_file, model_score_file, 
     for qp, scores in qid_pid2score:
         q, p = qp.split('\t')
         if 'bm_score' not in scores:
-            bm_score = bm25_qid_2_min_score[q]
+            if q in bm25_qid_2_min_score:
+                bm_score = bm25_qid_2_min_score[q]
+            bm_score = 0
         else:
             bm_score = scores['bm_score']
         
         if 'model_score' not in scores:
             model_score = model_qid_2_min_score[q]
+            # model_score = 0
         else:
             model_score = scores['model_score']
 
@@ -115,8 +117,14 @@ def merge_bm25_and_model(bm25_id_map_file, model_id_map_file, model_score_file, 
 # ensumble(file_list, merge_file)
 
 # 2. merge bm25分数和模型分数
-bm25_id_map_file = os.path.join(here, '../bm25/dev_bm25_id_map_top50.tsv')  # qid\tpid\tscore
-model_id_map_file = os.path.join(here, '../dureader-retrieval-baseline-dataset/auxiliary/dev.retrieval.top50.res.id_map.tsv')  # qid\tpid
-model_score_file = os.path.join(here, '../output/dureader-retrieval-baseline-dataset/auxiliary/dev.retrieval.top50.res.tsv.score.0.0') # score
-out_put_file = os.path.join(here, '../output/bm25_model_merge_id_map.tsv')
+# bm25_id_map_file = os.path.join(here, '../bm25/dev_bm25_id_map_top100.tsv')  # qid\tpid\tscore
+# model_id_map_file = os.path.join(here, '../dureader-retrieval-baseline-dataset/auxiliary/dev.retrieval.top50.res.id_map.tsv')  # qid\tpid
+# model_score_file = os.path.join(here, '../output/dureader-retrieval-baseline-dataset/auxiliary/dev.retrieval.top50.res.tsv.score.0.0') # score
+# out_put_file = os.path.join(here, '../output/bm25_model_merge_id_map.tsv')
+
+bm25_id_map_file = os.path.join(here, '../bm25/test1_bm25_id_map_top50.tsv')  # qid\tpid\tscore
+model_id_map_file = os.path.join(here, '../dureader-retrieval-baseline-dataset/dual_res_top50/test1.dual.top50.tsv')  # qid\tpid
+model_score_file = os.path.join(here, '../output_offical_test1/dureader-retrieval-baseline-dataset/dual_res_top50/test1.retrieval_text.top50.res.tsv.score.0.0') # score
+out_put_file = os.path.join(here, '../output_offical_test1/bm25_model_merge_id_map.tsv')
+
 merge_bm25_and_model(bm25_id_map_file, model_id_map_file, model_score_file, out_put_file)

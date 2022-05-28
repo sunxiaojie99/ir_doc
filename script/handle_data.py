@@ -332,7 +332,7 @@ def generate_query_jsonl(query_file, out_put_file, qid_map_file, count2qtext_map
 # 1. 根据官方召回结果，生成传入cross阶段的数据
 
 # res_text_file = os.path.join(here, '../dureader-retrieval-baseline-dataset/auxiliary/dev.retrieval.top50.res.tsv')
-# res_text_file = os.path.join(here, '../dureader-retrieval-baseline-dataset/dual_res_top50/test1.retrieval_text.top50.res.tsv')
+out_res_text_file = os.path.join(here, '../dureader-retrieval-baseline-dataset/dual_res_top50/test1.retrieval_text.top50.res.tsv')
 # res_id_file = os.path.join(here, '../dureader-retrieval-baseline-dataset/dual_res_top50/test1.dual.top50.tsv')
 # query_id2text_map_file = os.path.join(here, '../dureader-retrieval-baseline-dataset/dureader-retrieval-test1/test1.json')
 # file_name_list = [
@@ -342,7 +342,7 @@ def generate_query_jsonl(query_file, out_put_file, qid_map_file, count2qtext_map
 #     os.path.join(here, "../dureader-retrieval-baseline-dataset/passage-collection/part-03")
 # ]
 # passage_index2id = os.path.join(here, "../dureader-retrieval-baseline-dataset/passage-collection/passage2id.map.json")
-# generate_text_from_id(res_text_file, res_id_file, query_id2text_map_file, file_name_list, passage_index2id)
+# generate_text_from_id(out_res_text_file, res_id_file, query_id2text_map_file, file_name_list, passage_index2id)
 
 # 2.根据recall模型的结果 dual_res.json 生成cross的输入结果
 # res_text_file = os.path.join(here, '../output/dual_res_for_cross.tsv')
@@ -380,9 +380,9 @@ def generate_query_jsonl(query_file, out_put_file, qid_map_file, count2qtext_map
 
 # 6. 生成bm25 query文件
 # query_id2text_map_file = os.path.join(here, '../dureader-retrieval-baseline-dataset/dev/q2qid.dev.json')  # dev设置
-# query_id2text_map_file = os.path.join(here, '../dureader-retrieval-baseline-dataset/dureader-retrieval-test1/test1.json')  # test1设置
+query_id2text_map_file = os.path.join(here, '../dureader-retrieval-baseline-dataset/dureader-retrieval-test1/test1.json')  # test1设置
 # query_id2text_map_file = os.path.join(here, '../dureader-retrieval-baseline-dataset/train/dual.train.tsv')  # dual_train设置
-# out_put_file=os.path.join(here, "../bm25/dual_queries_zh.tsv")
-# qid_map_file = os.path.join(here, "../bm25/dual_queryid_map.json")
-# count2qtext_map_file = os.path.join(here, "../bm25/dual_querytext_map.json")
-# generate_query_jsonl(query_id2text_map_file, out_put_file, qid_map_file, count2qtext_map_file, option='dual_train')
+out_put_file=os.path.join(here, "../bm25/test1_queries_zh.tsv")
+qid_map_file = os.path.join(here, "../bm25/test1_queryid_map.json")
+count2qtext_map_file = os.path.join(here, "../bm25/test1_querytext_map.json")
+generate_query_jsonl(query_id2text_map_file, out_put_file, qid_map_file, count2qtext_map_file, option='test1')

@@ -40,9 +40,18 @@ nohup python -m pyserini.search.lucene \
 nohup python -m pyserini.search.lucene \
   --index bm25/indexes/lucene-index-ir-passage \
   --topics bm25/dual_queries_zh.tsv \
-  --output bm25/runs/run.dual.bm25tuned_top200.txt \
+  --output bm25/runs/run.dual.bm25tuned_top100.txt \
   --language zh \
-  --hits 200 \
+  --hits 100 \
+  --bm25 --k1 0.65 --b 0.7 > bm25_dual.log 2>&1 &
+
+# 4. 对test1进行检索
+nohup python -m pyserini.search.lucene \
+  --index bm25/indexes/lucene-index-ir-passage \
+  --topics bm25/test1_queries_zh.tsv \
+  --output bm25/runs/run.test1.bm25tuned_top50.txt \
+  --language zh \
+  --hits 50 \
   --bm25 --k1 0.65 --b 0.7 > bm25_dual.log 2>&1 &
 ```
 

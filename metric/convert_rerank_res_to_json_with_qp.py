@@ -4,8 +4,8 @@ import json
 from collections import defaultdict
 
 id_score_f = sys.argv[1]
-
-outputf = 'output/cross_res.json'
+outputf = sys.argv[2]
+# outputf = 'output/cross_res.json'
 
 scores = []
 q_ids = []
@@ -28,7 +28,7 @@ for q in q_dic:
     for cand in cands:
         rank += 1
         output.append([q, cand[1], rank])
-        if rank > 499: # 保留score前50的passage
+        if rank > 49: # 保留score前50的passage
             break
 
 with open(outputf, 'w') as f:
@@ -36,6 +36,6 @@ with open(outputf, 'w') as f:
     for line in output:
         qid, pid, rank = line
         if qid not in res:
-            res[qid] = [0] * 500
+            res[qid] = [0] * 50
         res[qid][int(rank) - 1] = pid # 每个qid的50个pid list
     json.dump(res, f, ensure_ascii=False, indent='\t')
