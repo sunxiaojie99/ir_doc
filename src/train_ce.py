@@ -23,6 +23,7 @@ import os
 import time
 import logging
 import multiprocessing
+import numpy as np
 
 # NOTE(paddle-dev): All of these flags should be
 # set before `import paddle`. Otherwise, it would
@@ -240,13 +241,14 @@ def main(args):
             try:
                 steps += 1
 #                log.info("step: %d" % steps)
-    
+
+                class_weight = np.array([0.5, 0.5]).astype('float32')
                 if fleet.worker_index() != 0:
-                    train_exe.run(fetch_list=[], program=train_program)
+                    train_exe.run(fetch_list=[], feed={"class_weight": class_weight}, program=train_program)
                     continue
     
                 if steps % args.skip_steps != 0:  # skip_steps=10, 每10个batch才进行一次判断
-                    train_exe.run(fetch_list=[], program=train_program)
+                    train_exe.run(fetch_list=[], feed={"class_weight": class_weight}, program=train_program)
     
                 else:  # 每10个batch，即320个样本输出一次
                     outputs = evaluate(

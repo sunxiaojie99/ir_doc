@@ -102,6 +102,12 @@ export CUDA_VISIBLE_DEVICES=0,1,2,3
 TRAIN_SET=dureader-retrieval-baseline-dataset/train/cross.train.demo.tsv
 MODEL_PATH=pretrained-models/ernie_base_1.0_CN/params
 sh script/run_cross_encoder_train.sh $TRAIN_SET $MODEL_PATH 3 4
+
+
+export CUDA_VISIBLE_DEVICES=0
+TRAIN_SET=dureader-retrieval-baseline-dataset/train/cross.train.tsv
+MODEL_PATH=pretrained-models/ernie_base_1.0_CN/params
+nohup sh script/run_cross_encoder_train.sh $TRAIN_SET $MODEL_PATH 3 1 > process_cross_train_paddle.log 2>&1 &
 ```
 
 ```

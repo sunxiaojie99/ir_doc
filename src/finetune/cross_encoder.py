@@ -95,12 +95,14 @@ def create_model(args,
         num_seqs = fluid.layers.create_tensor(dtype='int64')
         ## add focal loss
         # class_weight=paddle.to_tensor([2, 1])
-        # focal_loss=FocalLoss(reduction='mean',weight=class_weight,gamma=0)
-        # ce_loss_old = paddle.nn.CrossEntropyLoss(reduction='mean',weight=class_weight,axis=-1)
-        # focal_loss_value=focal_loss(logits, labels)
-        # ce_loss_value=ce_loss_old(logits, labels)
-        # softmax_layer = paddle.nn.Softmax()
-        # focal_probs = softmax_layer(logits)
+        class_weight = paddle.static.data(name='class_weight', shape=[2], dtype='float32')
+        class_weight=None
+        focal_loss=FocalLoss(reduction='mean',weight=class_weight,gamma=1.3)
+        ce_loss_old = paddle.nn.CrossEntropyLoss(reduction='mean',weight=class_weight,axis=-1)
+        focal_loss_value=focal_loss(logits, labels)
+        ce_loss_value=ce_loss_old(logits, labels)
+        softmax_layer = paddle.nn.Softmax()
+        focal_probs = softmax_layer(logits)
 
         ce_loss, probs = fluid.layers.softmax_with_cross_entropy(
             logits=logits, label=labels, return_softmax=True)  # probs:[-1,2]
@@ -111,10 +113,10 @@ def create_model(args,
         # print("focal_probs:", focal_probs, '\n probs:', probs)
 
         accuracy = fluid.layers.accuracy(
-            input=probs, label=labels, total=num_seqs)
+            input=focal_probs, label=labels, total=num_seqs)
         graph_vars = {
-            "loss": loss,
-            "probs": probs,
+            "loss": focal_loss_value,
+            "probs": focal_probs,
             "accuracy": accuracy,
             "labels": labels,
             "num_seqs": num_seqs,

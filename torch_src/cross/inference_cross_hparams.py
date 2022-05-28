@@ -7,10 +7,10 @@ here = os.path.dirname(os.path.abspath(__file__))
 
 test_set = os.path.join(here, '../../dureader-retrieval-baseline-dataset/auxiliary/dev.retrieval.top50.res.tsv')
 # test_set = os.path.join(here, '../../dureader-retrieval-baseline-dataset/train/cross.train.tsv')
-checkpoints_dir=os.path.join(here, '../../output')
+checkpoints_dir=os.path.join(here, '../../output_torch_ernie1.0')
 checkpoint_file=os.path.join(checkpoints_dir, 'cross_checkpoint.json')
-pretrained_model_path = os.path.join(here, '../../torch_pretrained_models/ernie-gram-zh') # https://huggingface.co/nghuyong/ernie-gram-zh
-vocab_path = os.path.join(here, '../../torch_pretrained_models/ernie-gram-zh/vocab.txt')
+pretrained_model_path = os.path.join(here, '../../torch_pretrained_models/ernie_1.0_torch') # https://huggingface.co/nghuyong/ernie-gram-zh
+vocab_path = os.path.join(here, '../../torch_pretrained_models/ernie_1.0_torch/vocab.txt')
 log_dir = os.path.join(here, '../../log_dir')
 save_path = os.path.join(checkpoints_dir, 'cross_infer_top50.score')
 all_score_save_path = os.path.join(checkpoints_dir, 'all_cross_infer_top50.score')

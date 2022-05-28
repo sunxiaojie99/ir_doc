@@ -83,7 +83,7 @@ python metric/convert_offical_recall_res_to_json.py $ID_MAP 50
 # 2.gpu单卡运行，如果不是卡0，还需要改一下do_cross_train.py中的 os.environ['CUDA_VISIBLE_DEVICES'] = '0'设置
 
 # 3. 开始运行
-CUDA_VISIBLE_DEVICES=0 nohup python3 -u do_cross_train.py > process_do_cross_train.log 2>&1 &
+CUDA_VISIBLE_DEVICES=0 nohup python3 -u do_cross_train.py > torch_cross_train_ernie1.0.log 2>&1 &
 
 # 注：debug模型，不带CUDA_VISIBLE_DEVICES=0即为cpu运行
 CUDA_VISIBLE_DEVICES=0 python do_cross_train.py --debug
@@ -198,3 +198,6 @@ paddle offical_rerank:
 - [比赛链接](https://aistudio.baidu.com/aistudio/competition/detail/157/0/introduction)
 - [损失函数技术总结及Pytorch使用示例](https://zhuanlan.zhihu.com/p/383997503)
 - [focal loss](https://blog.csdn.net/a486259/article/details/122758621)
+- [focal_loss_pytorch](https://github.com/yatengLG/Focal-Loss-Pytorch)
+- [ernie\torch模型转换](https://github.com/nghuyong/ERNIE-Pytorch)
+- [ernie模型下载link](https://github.com/PaddlePaddle/ERNIE/tree/ernie-kit-open-v1.0/applications/models_hub)
