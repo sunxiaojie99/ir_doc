@@ -11,7 +11,7 @@ import random
 from ..tokenization import convert_to_unicode, FullTokenizer
 
 
-def truncate_seq_pair(tokens_a, tokens_b, max_length):
+def truncate_seq_pair(tokens_a, tokens_b, max_length, save_a=False):
     """Truncates a sequence pair in place to the maximum length."""
 
     # This is a simple heuristic which will always truncate the longer sequence
@@ -22,7 +22,7 @@ def truncate_seq_pair(tokens_a, tokens_b, max_length):
         total_length = len(tokens_a) + len(tokens_b)
         if total_length <= max_length:
             break
-        if len(tokens_a) > len(tokens_b):
+        if len(tokens_a) > len(tokens_b) and save_a is False:  # 如果不保留a，在弹出
             tokens_a.pop()
         else:
             tokens_b.pop()
@@ -60,7 +60,7 @@ def read_data(data_file_path, tokenizer, max_seq_len, is_dubug=False, shuffle=Fa
             para = convert_to_unicode(passage)
             tokens_para = tokenizer.tokenize(para)
 
-            truncate_seq_pair(tokens_query, tokens_para, max_seq_len-3)
+            truncate_seq_pair(tokens_query, tokens_para, max_seq_len-3, save_a=True)
 
             token_ids_query_list.append(tokens_query)
             token_ids_p_list.append(tokens_para)

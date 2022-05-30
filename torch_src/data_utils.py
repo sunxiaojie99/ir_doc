@@ -234,9 +234,9 @@ class MyDataset(Dataset):
 
         if debug:
             print('dug!!!!')
-            self.token_ids_q_list = self.token_ids_q_list[:32]
-            self.token_ids_p_pos_list = self.token_ids_p_pos_list[:32]
-            self.token_ids_p_neg_list = self.token_ids_p_neg_list[:32]
+            self.token_ids_q_list = self.token_ids_q_list
+            self.token_ids_p_pos_list = self.token_ids_p_pos_list
+            self.token_ids_p_neg_list = self.token_ids_p_neg_list
 
         self.num = len(self.token_ids_q_list)
         print('样本数: ', self.num)
@@ -253,15 +253,15 @@ class MyDataset(Dataset):
         sample_token_ids_p_pos = self.token_ids_p_pos_list[idx]
         sample_token_ids_p_neg = self.token_ids_p_neg_list[idx]
         encoded_q = self.bert_tokenizer.encode_plus(sample_token_ids_q, max_length=self.q_max_seq_len,
-                                                    pad_to_max_length=True, truncation=True)
+                                                    padding='max_length', truncation=True)
         # p self.bert_tokenizer.
         # convert_ids_to_tokens(self.bert_tokenizer.encode_plus(self.token_ids_q_list[0])['input_ids'])
         # ['[CLS]', '微', '信', '分', '享', '链', '接', '打', '开', 'app', '[SEP]']
 
         encoded_p_pos = self.bert_tokenizer.encode_plus(sample_token_ids_p_pos, max_length=self.p_max_seq_len,
-                                                        pad_to_max_length=True, truncation=True)
+                                                        padding='max_length', truncation=True)
         encoded_p_neg = self.bert_tokenizer.encode_plus(sample_token_ids_p_neg, max_length=self.p_max_seq_len,
-                                                        pad_to_max_length=True, truncation=True)
+                                                        padding='max_length', truncation=True)
 
         sample = {
             "q_token_ids": torch.tensor(encoded_q['input_ids']),
@@ -310,8 +310,8 @@ class InferDataset(Dataset):
             
         if debug:
             print('dug!!!!')
-            self.token_ids_q_list = self.token_ids_q_list[:32]
-            self.token_ids_p_list = self.token_ids_p_list[:32]
+            self.token_ids_q_list = self.token_ids_q_list[:64]
+            self.token_ids_p_list = self.token_ids_p_list[:64]
 
         self.num = len(self.token_ids_q_list)
         print('样本数: ', self.num)

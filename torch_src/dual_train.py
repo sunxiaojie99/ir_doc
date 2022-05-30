@@ -108,6 +108,8 @@ def train(h_params):
         print("Epoch: {}".format(epoch))
         model.train()
         step_losses = []
+        batch_loss = []
+        batch_acc = []
         for i_batch, sampled_batched in enumerate(train_loader):
             q_token_ids = sampled_batched['q_token_ids'].to(device)
             q_token_type_ids = sampled_batched['q_token_type_ids'].to(device)
@@ -129,9 +131,13 @@ def train(h_params):
                 all_labels = torch.tensor(np.array(range(0, batch_size), dtype='int64')).to(device)  # [bs]: 0,1,2..,bs-1
                 # 对于每一行，只有处在对角线的元素才是正例（label），其他同batch的元素都是listwise的负例
                 loss = criterion(logits, all_labels)  # softmax+log+negative log likelihood loss(会取平均)
-
+            
+            pred_tag_ids = logits.argmax(1)
+            acc = metrics.accuracy_score(all_labels.tolist(), pred_tag_ids.tolist())
             running_loss += loss.item()
             step_losses.append(loss.item())
+            batch_loss.append(loss.item())
+            batch_acc.append(acc)
 
             scaler.scale(loss).backward()
             scaler.step(optimizer)
@@ -146,10 +152,12 @@ def train(h_params):
             global_step += 1
 
             if global_step % log_steps == 0:
-                print("fold %d ,global step %d, epoch: %d, batch: %d, loss: %.5f, speed: %.2f step/s"
-                        % (1, global_step, epoch, i_batch, np.mean(step_losses),
+                print("fold %d ,global step %d, epoch: %d, batch: %d, loss: %.5f, acc: %.5f,speed: %.2f step/s"
+                        % (1, global_step, epoch, i_batch, np.mean(batch_loss), np.mean(batch_acc),
                             global_step / (time.time() - tic_train),
                             ))
+                step_losses = []
+                batch_acc = []
             
         epoch_model_file = os.path.join(checkpoints_dir, 'epoch_{}_dual_params.bin'.format(epoch))
         torch.save(model.state_dict(), epoch_model_file)  # 每个epoch都保存一下

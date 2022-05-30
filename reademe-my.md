@@ -20,7 +20,7 @@ eg, torch_pretrained_models/chinese-bert-wwm
 # 4. gpu单卡运行，如果不是卡1，还需要改一下do_dual_train.py中的 os.environ['CUDA_VISIBLE_DEVICES'] = '1'设置
 
 # 5.开始运行
-CUDA_VISIBLE_DEVICES=1 nohup python3 -u do_dual_train.py > process_do_dual_train.log 2>&1 &
+CUDA_VISIBLE_DEVICES=0 nohup python3 -u do_dual_train.py > torch_dual_train_e6_p456.log 2>&1 &
 
 # 注：cpu 上debug
 python do_dual_train.py --debug
@@ -83,7 +83,7 @@ python metric/convert_offical_recall_res_to_json.py $ID_MAP 50
 # 2.gpu单卡运行，如果不是卡0，还需要改一下do_cross_train.py中的 os.environ['CUDA_VISIBLE_DEVICES'] = '0'设置
 
 # 3. 开始运行
-CUDA_VISIBLE_DEVICES=0 nohup python3 -u do_cross_train.py > torch_cross_train_ernie1.0.log 2>&1 &
+CUDA_VISIBLE_DEVICES=0 nohup python3 -u do_cross_train.py > torch_ernie1.0_focal_a1_l510.log 2>&1 &
 
 # 注：debug模型，不带CUDA_VISIBLE_DEVICES=0即为cpu运行
 CUDA_VISIBLE_DEVICES=0 python do_cross_train.py --debug
@@ -103,7 +103,7 @@ CUDA_VISIBLE_DEVICES=0 python do_cross_train.py --debug
 # 2. gpu单卡运行，如果不是卡0，还需要改一下 do_cross_infer.py中的 os.environ['CUDA_VISIBLE_DEVICES'] = '0'设置
 
 # 4.开始运行
-CUDA_VISIBLE_DEVICES=0 nohup python3 -u do_cross_infer.py > process_do_cross_infer.log 2>&1 &
+CUDA_VISIBLE_DEVICES=0 nohup python3 -u do_cross_infer.py > torch_do_cross_infer_e2.log 2>&1 &
 
 # 注：cpu debug
 python do_cross_infer.py --debug
@@ -111,9 +111,10 @@ python do_cross_infer.py --debug
 
 3.转换输出格式，输出文件`output/cross_res.json`
 ```
-MODEL_OUTPUT="output/cross_infer_top50.score"
+MODEL_OUTPUT="output_torch_ernie1.0_focal_a1.3/cross_infer_top50_epoch2.score"
 ID_MAP="dureader-retrieval-baseline-dataset/auxiliary/dev.retrieval.top50.res.id_map.tsv"
-python metric/convert_rerank_res_to_json.py $MODEL_OUTPUT $ID_MAP 
+out_put="output_torch_ernie1.0_focal_a1.3/cross_res_dev.json"
+python metric/convert_rerank_res_to_json.py $MODEL_OUTPUT $ID_MAP $out_put
 ```
 
 # eval
@@ -121,7 +122,7 @@ python metric/convert_rerank_res_to_json.py $MODEL_OUTPUT $ID_MAP
 1.使用`MRR@10`, `Recall@1` 和 `Recall@50` 用作评估指标，在dev上，REFERENCE_FIEL是官方带答案的文件，PREDICTION_FILE模型的输出，可以是召回模型得到的`output/dual_res.json`，也可以是精排模型得到的`output/cross_res.json`
 ```
 REFERENCE_FIEL="dureader-retrieval-baseline-dataset/dev/dev.json"
-PREDICTION_FILE="output/cross_res.json"
+PREDICTION_FILE="output_torch_ernie1.0_focal_a1.3/cross_res_dev.json"
 python metric/evaluation.py $REFERENCE_FIEL $PREDICTION_FILE
 ```
 
@@ -157,6 +158,20 @@ torch(epoch=1)
 用前10找到答案的做分母的mrr： 0.677933638126906
 {"MRR@10": 0.5437027777777785, "QueriesRanked": 2000, "recall@1": 0.421, "recall@50": 0.9175}
 
+torch(epoch=1)  torch_cross_train_ernie1.0_e2_len500 Focal_loss alpha = [1, 1],gamma=0
+待评测的query数量： 2000
+在前10找到答案的query数量： 1670
+在前50找到答案的query数量： 1835
+用前10找到答案的做分母的mrr： 0.743388461172892
+{"MRR@10": 0.6207293650793648, "QueriesRanked": 2000, "recall@1": 0.512, "recall@50": 0.9175, "recall@all": 0.9175}
+
+torch(epoch=2) torch_cross_train_ernie1.0_e2_len500 Focal_loss alpha = [1, 1],gamma=0
+待评测的query数量： 2000
+在前10找到答案的query数量： 1666
+在前50找到答案的query数量： 1835
+用前10找到答案的做分母的mrr： 0.7505406924674639
+{"MRR@10": 0.6252003968253974, "QueriesRanked": 2000, "recall@1": 0.521, "recall@50": 0.9175, "recall@all": 0.9175}
+
 paddle offical rank:
 待评测的query数量： 2000
 在前10找到答案的query数量： 1763
@@ -164,12 +179,13 @@ paddle offical rank:
 用前10找到答案的做分母的mrr： 0.8263280033132554
 {"MRR@10": 0.7284081349206347, "QueriesRanked": 2000, "recall@1": 0.641, "recall@50": 0.9175}
 
-paddle baseline_ours:
+
+torch(epoch=1) torch_cross_train_ernie1.0_e2_len500 Focal_loss alpha = [1, 1],gamma=2
 待评测的query数量： 2000
-在前10找到答案的query数量： 1660
+在前10找到答案的query数量： 1623
 在前50找到答案的query数量： 1835
-用前10找到答案的做分母的mrr： 0.7774780072671645
-{"MRR@10": 0.6453067460317465, "QueriesRanked": 2000, "recall@1": 0.543, "recall@50": 0.9175}
+用前10找到答案的做分母的mrr： 0.7106844565717035
+{"MRR@10": 0.5767204365079374, "QueriesRanked": 2000, "recall@1": 0.463, "recall@50": 0.9175, "recall@all": 0.9175}
 ```
 
 # test1 result
