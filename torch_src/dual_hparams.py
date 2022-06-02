@@ -6,20 +6,20 @@ import json
 here = os.path.dirname(os.path.abspath(__file__))
 
 train_set = os.path.join(here, '../dureader-retrieval-baseline-dataset/train/dual.train.tsv')
-test_save=os.path.join(here, '../output/score')
-checkpoints_dir=os.path.join(here, '../output')
+test_save=os.path.join(here, '../output_torch_ernie1.0_dual/score')
+checkpoints_dir=os.path.join(here, '../output_torch_ernie1.0_dual')
 checkpoint_file=os.path.join(checkpoints_dir, 'checkpoint.json')
-pretrained_model_path = os.path.join(here, '../torch_pretrained_models/chinese-bert-wwm') # https://huggingface.co/nghuyong/ernie-gram-zh
-vocab_path = os.path.join(here, '../torch_pretrained_models/chinese-bert-wwm/vocab.txt')
+pretrained_model_path = os.path.join(here, '../torch_pretrained_models/ernie_1.0_torch') # https://huggingface.co/nghuyong/ernie-gram-zh
+vocab_path = os.path.join(here, '../torch_pretrained_models/ernie_1.0_torch/vocab.txt')
 log_dir = os.path.join(here, '../log_dir')
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 hidden_size=json.load(open(os.path.join(pretrained_model_path, 'config.json'), 'r', encoding='utf-8'))['hidden_size']
 lr=3e-5
-epochs = 5
-batch_size=8
+epochs = 6
+batch_size=48
 q_max_seq_len=32
-p_max_seq_len=384
+p_max_seq_len=456
 weight_decay=0.0
 warmup_proportion=0.1
 random_seed=1

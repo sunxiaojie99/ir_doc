@@ -101,7 +101,7 @@ def train(h_params):
 
     criterion = torch.nn.CrossEntropyLoss().to(device)
     # focal_loss(alpha=[1,1],gamma=0, num_classes=2)(logits, label_ids) 等价于 torch.nn.CrossEntropyLoss
-    focal_loss_fn = focal_loss(alpha=[0.5,0.5], gamma=1.2, num_classes=2).to(device)
+    focal_loss_fn = focal_loss(alpha=[1,1], gamma=0, num_classes=2).to(device)
     running_loss = 0
     
     losses = []
