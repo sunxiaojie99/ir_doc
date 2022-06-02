@@ -43,9 +43,9 @@ def load_candidate_from_stream(f):
     try:
         preds = json.load(f)
         for qid in preds.keys():
-            tmp = [0] * 500
+            tmp = [0] * 1000
             qid_to_ranked_candidate_passages[qid] = tmp
-            for rank, pid in enumerate(preds[qid][:500]):
+            for rank, pid in enumerate(preds[qid][:1000]):
                 qid_to_ranked_candidate_passages[qid][rank] = pid
     except:
         raise IOError('Submitted file is not valid format')

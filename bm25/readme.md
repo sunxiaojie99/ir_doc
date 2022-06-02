@@ -30,20 +30,28 @@ python script/handle_data.py
 nohup python -m pyserini.search.lucene \
   --index bm25/indexes/lucene-index-ir-passage \
   --topics bm25/dev_queries_zh.tsv \
-  --output bm25/runs/run.dev.bm25tuned_top50.txt \
+  --output bm25/runs/run.dev.bm25tuned_top30.txt \
   --language zh \
-  --hits 50 \
+  --hits 30 \
   --bm25 --k1 0.65 --b 0.7 > bm25_dev.log 2>&1 &
+
+python -m pyserini.search.lucene \
+  --index indexes/lucene-index-ir-passage \
+  --topics dev_queries_zh.tsv \
+  --output runs/run.dev.bm25tuned_top100.txt \
+  --language zh \
+  --hits 100 \
+  --bm25 --k1 0.3 --b 1
 
 
 # 4. 对dual_train进行检索
 nohup python -m pyserini.search.lucene \
-  --index bm25/indexes/lucene-index-ir-passage \
-  --topics bm25/dual_queries_zh.tsv \
-  --output bm25/runs/run.dual.bm25tuned_top100.txt \
+  --index bm25_jieba/indexes/lucene-index-ir-passage \
+  --topics bm25_jieba/dual_queries_zh.tsv \
+  --output bm25_jieba/runs/run.dual.bm25tuned_top200.txt \
   --language zh \
-  --hits 100 \
-  --bm25 --k1 0.65 --b 0.7 > bm25_dual.log 2>&1 &
+  --hits 200 \
+  --bm25 --k1 0.5 --b 0.9 > bm25_dual_jieba.log 2>&1 &
 
 # 4. 对test1进行检索
 nohup python -m pyserini.search.lucene \

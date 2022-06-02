@@ -123,8 +123,7 @@ def generate_bm25_file(bm25_file, dual_bm25_id2id_file, output_file):
     
     f_out.close()
 
-
-option='dual'
+option='dev'
 
 print('正在处理:', option)
 
@@ -137,16 +136,16 @@ file_name_list = [
 passage_index2id = os.path.join(here, "../dureader-retrieval-baseline-dataset/passage-collection/passage2id.map.json")
 
 bm25_file = os.path.join(here, 'runs/run.'+option+'.bm25tuned_top100.txt')
-bm25_id2text_file = os.path.join(here, option+'_querytext_map.json')
-bm25_id2id_file = os.path.join(here, option+'_queryid_map.json')
+bm25_id2text_file = os.path.join(here, '../bm25/'+option+'_querytext_map.json')
+bm25_id2id_file = os.path.join(here, '../bm25/'+option+'_queryid_map.json')
 
 # 1. 利用bm25 生成dual的训练集
-# dual_train_file=os.path.join(here, '../dureader-retrieval-baseline-dataset/train/dual.train.tsv')
-# out_file = os.path.join(here, '../dureader-retrieval-baseline-dataset/train/bm25_dual.train.tsv')
-# generate_dual_train_data(out_file, bm25_file, bm25_id2text_file, dual_train_file, file_name_list, passage_index2id, sample_num=4)
+dual_train_file=os.path.join(here, '../dureader-retrieval-baseline-dataset/train/dual.train.tsv')
+out_file = os.path.join(here, '../dureader-retrieval-baseline-dataset/train/bm25_dual.train.tsv')
+generate_dual_train_data(out_file, bm25_file, bm25_id2text_file, dual_train_file, file_name_list, passage_index2id, sample_num=4)
 
 
 # 2. 转换bm25格式, qid\tpid\tscore
-out_put_file = os.path.join(here, option+'_bm25_id_map_top200.tsv')
-bm25_file = os.path.join(here, 'runs/run.'+option+'.bm25tuned_top200.txt')
+out_put_file = os.path.join(here, option+'_bm25_id_map_top100.tsv')
+bm25_file = os.path.join(here, 'runs/run.'+option+'.bm25tuned_top100.txt')
 # generate_bm25_file(bm25_file, bm25_id2id_file, out_put_file)

@@ -22,6 +22,19 @@ bm25/*.json
 bm25/*.tsv
 bm25/*.log
 dual_res_top50/
+bm25_jieba/collection_jsonl
+bm25_jieba/indexes
+bm25_jieba/runs
+bm25_jieba/*.json
+bm25_jieba/*.tsv
+bm25_jieba/*.log
+bm25_jieba/dual_top200*
+bm25_jieba_stop/collection_jsonl
+bm25_jieba_stop/indexes
+bm25_jieba_stop/runs
+bm25_jieba_stop/*.json
+bm25_jieba_stop/*.tsv
+bm25_jieba_stop/*.log
 
 # Build and Release Folders
 bin-debug/

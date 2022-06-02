@@ -97,7 +97,7 @@ def create_model(args,
         # class_weight=paddle.to_tensor([2, 1])
         class_weight = paddle.static.data(name='class_weight', shape=[2], dtype='float32')
         class_weight=None
-        focal_loss=FocalLoss(reduction='mean',weight=class_weight,gamma=1.3)
+        focal_loss=FocalLoss(reduction='mean',weight=class_weight,gamma=2)
         ce_loss_old = paddle.nn.CrossEntropyLoss(reduction='mean',weight=class_weight,axis=-1)
         focal_loss_value=focal_loss(logits, labels)
         ce_loss_value=ce_loss_old(logits, labels)

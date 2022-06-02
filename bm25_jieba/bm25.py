@@ -124,7 +124,32 @@ def generate_bm25_file(bm25_file, dual_bm25_id2id_file, output_file):
     f_out.close()
 
 
-option='dual'
+def generate_bm25_file_dual(bm25_file=os.path.join(here, 'runs/run.dual.bm25tuned_top200.txt'), 
+                            dual_bm25_id2text_file=os.path.join(here, '../bm25/dual_querytext_map.json'), 
+                            output_file=os.path.join(here,'dual_bm25_text_pid_map_top200.tsv')):
+    """
+    转换bm25格式, qid\tpid\tscore
+    """
+    with open(dual_bm25_id2text_file, 'r', encoding='utf8') as f:
+        bm25_id2text = json.load(f)
+    
+    f_out = open(output_file, 'w', encoding='utf8')
+
+    with open(bm25_file, 'r', encoding='utf-8') as f:
+        lines = f.readlines()
+        for l in tqdm(lines):
+            line = l.rstrip('\n').split()
+            bm25id = line[0]
+            query_text = bm25_id2text[bm25id]
+            para_id = line[2]
+            rank = line[3]
+            score = line[4]
+            f_out.write('{}\t{}\t{}\n'.format(query_text, para_id, score))
+    
+    f_out.close()
+
+
+option='dev'
 
 print('正在处理:', option)
 
@@ -137,8 +162,8 @@ file_name_list = [
 passage_index2id = os.path.join(here, "../dureader-retrieval-baseline-dataset/passage-collection/passage2id.map.json")
 
 bm25_file = os.path.join(here, 'runs/run.'+option+'.bm25tuned_top100.txt')
-bm25_id2text_file = os.path.join(here, option+'_querytext_map.json')
-bm25_id2id_file = os.path.join(here, option+'_queryid_map.json')
+bm25_id2text_file = os.path.join(here, '../bm25/'+option+'_querytext_map.json')
+bm25_id2id_file = os.path.join(here, '../bm25/'+option+'_queryid_map.json')
 
 # 1. 利用bm25 生成dual的训练集
 # dual_train_file=os.path.join(here, '../dureader-retrieval-baseline-dataset/train/dual.train.tsv')
@@ -147,6 +172,10 @@ bm25_id2id_file = os.path.join(here, option+'_queryid_map.json')
 
 
 # 2. 转换bm25格式, qid\tpid\tscore
-out_put_file = os.path.join(here, option+'_bm25_id_map_top200.tsv')
-bm25_file = os.path.join(here, 'runs/run.'+option+'.bm25tuned_top200.txt')
-# generate_bm25_file(bm25_file, bm25_id2id_file, out_put_file)
+out_put_file = os.path.join(here, option+'_bm25_id_map_top100.tsv')
+bm25_file = os.path.join(here, 'runs/run.'+option+'.bm25tuned_top100.txt')
+generate_bm25_file(bm25_file, bm25_id2id_file, out_put_file)
+
+
+# 3. 为dual转换格式，因为dual给的没有qid
+# generate_bm25_file_dual()

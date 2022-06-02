@@ -241,8 +241,8 @@ def main(args):
             try:
                 steps += 1
 #                log.info("step: %d" % steps)
-
-                class_weight = np.array([0.5, 0.5]).astype('float32')
+                # log.info('class_weight:{},gamma:{}'.format('[1,1]', 2))
+                class_weight = np.array([1, 1]).astype('float32')
                 if fleet.worker_index() != 0:
                     train_exe.run(fetch_list=[], feed={"class_weight": class_weight}, program=train_program)
                     continue

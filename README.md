@@ -106,8 +106,8 @@ sh script/run_cross_encoder_train.sh $TRAIN_SET $MODEL_PATH 3 4
 
 export CUDA_VISIBLE_DEVICES=0
 TRAIN_SET=dureader-retrieval-baseline-dataset/train/cross.train.tsv
-MODEL_PATH=pretrained-models/ernie_base_1.0_CN/params
-nohup sh script/run_cross_encoder_train.sh $TRAIN_SET $MODEL_PATH 3 1 > process_cross_train_paddle.log 2>&1 &
+MODEL_PATH=finetuned-models/cross_params
+nohup sh script/run_cross_encoder_train.sh $TRAIN_SET $MODEL_PATH 1 1 > process_cross_train_paddle_focal_e1.log 2>&1 &
 ```
 
 ```
@@ -180,20 +180,43 @@ python -m pyserini.search.lucene \
 
 # 测试bm25的代码，更改bm25.py中的k , 和model_output
 python bm25/bm25.py
-MODEL_OUTPUT="bm25/dev_bm25_id_map_top50.tsv"
-python metric/convert_rerank_res_to_json_with_qp.py $MODEL_OUTPUT
+MODEL_OUTPUT="bm25/dev_bm25_id_map_top30.tsv"
+out_file="output/cross_res.json"
+python metric/convert_rerank_res_to_json_with_qp.py $MODEL_OUTPUT $out_file
 REFERENCE_FIEL="dureader-retrieval-baseline-dataset/dev/dev.json"
 PREDICTION_FILE="output/cross_res.json"
 python metric/evaluation.py $REFERENCE_FIEL $PREDICTION_FILE
 
+# 测试bm25_jieba的代码，更改bm25.py中的k , 和model_output
+python bm25_jieba/bm25.py
+MODEL_OUTPUT="bm25_jieba/dev_bm25_id_map_top100.tsv"
+out_file="output/cross_res.json"
+python metric/convert_rerank_res_to_json_with_qp.py $MODEL_OUTPUT $out_file
+REFERENCE_FIEL="dureader-retrieval-baseline-dataset/dev/dev.json"
+PREDICTION_FILE="output/cross_res.json"
+python metric/evaluation.py $REFERENCE_FIEL $PREDICTION_FILE
+
+# 测试bm25_jieba_stop的代码，更改bm25.py中的k , 和model_output
+python bm25_jieba_stop/bm25.py
+MODEL_OUTPUT="bm25_jieba_stop/dev_bm25_id_map_top100.tsv"
+out_file="output/cross_res_stop.json"
+python metric/convert_rerank_res_to_json_with_qp.py $MODEL_OUTPUT $out_file
+REFERENCE_FIEL="dureader-retrieval-baseline-dataset/dev/dev.json"
+PREDICTION_FILE="output/cross_res_stop.json"
+python metric/evaluation.py $REFERENCE_FIEL $PREDICTION_FILE
+
 # 测试merge的代码，更改merge_score.py中的对应文件，还有系数
-python script/merge_score.py
+python script/merge_score.py 1 0.0006
 MODEL_OUTPUT="output_offical_test1/bm25_model_merge_id_map.tsv"
 out_file="output_offical_test1/cross_res.json"
 python metric/convert_rerank_res_to_json_with_qp.py $MODEL_OUTPUT $out_file
 
+python script/merge_score.py 1 0.0006
+MODEL_OUTPUT="output_offical_dev/bm25_model_merge_id_map.tsv"
+out_file="output_offical_dev/cross_res.json"
+python metric/convert_rerank_res_to_json_with_qp.py $MODEL_OUTPUT $out_file
 REFERENCE_FIEL="dureader-retrieval-baseline-dataset/dev/dev.json"
-PREDICTION_FILE="output/cross_res.json"
+PREDICTION_FILE="output_offical_dev/cross_res.json"
 python metric/evaluation.py $REFERENCE_FIEL $PREDICTION_FILE
 ```
 ## Evaluation
